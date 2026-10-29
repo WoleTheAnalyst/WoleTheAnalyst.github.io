@@ -1,0 +1,16 @@
+---
+// Provenance label for every visual: original screenshot, chart recreated from a report,
+// or values calculated from project data.
+interface Props { kind: 'screenshot' | 'recreated' | 'calculated' }
+const { kind } = Astro.props;
+const glyph = { screenshot: '▣', recreated: '↻', calculated: '∑' }[kind];
+---
+<span class:list={['source', kind]}><span aria-hidden="true">{glyph}</span> <slot /></span>
+
+<style>
+  .source {
+    display: inline-flex; gap: 0.4em; align-items: baseline; font: 500 0.75rem/1.4 var(--font-mono);
+    letter-spacing: 0.02em; color: var(--ink-2); border: 1px solid var(--rule); padding: 2px 8px; border-radius: var(--radius);
+  }
+  .recreated, .calculated { border-style: dashed; }
+</style>

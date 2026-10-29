@@ -1,0 +1,167 @@
+---
+import CaseStudy from '../../../layouts/CaseStudy.astro';
+import Shot from '../../../components/Shot.astro';
+import ChartFrame from '../../../components/ChartFrame.astro';
+import BarList from '../../../components/BarList.astro';
+import Flag from '../../../components/Flag.astro';
+import { projects } from '../../../data/projects';
+import * as ibm from '../../../data/ibm';
+import shot from '../../../assets/ibm/attrition-by-job-role.png';
+
+const project = projects.find((p) => p.slug === 'ibm-employee-attrition')!;
+const { rate } = ibm;
+const rows = (groups: ibm.Group[]) =>
+  groups.map((g) => ({ label: g.label, value: g.left / g.n, display: `${rate(g)}%`, note: g.note, tip: `${g.left} of ${g.n} employees left` }));
+const table = (groups: ibm.Group[]) => groups.map((g) => [g.label, g.n, g.left, `${rate(g)}%`]);
+const head = (first: string) => [first, 'Employees', 'Left', 'Attrition rate'];
+const maxRate = 0.6;
+const hrDept = ibm.departments.find((d) => d.label === 'Human Resources')!;
+const better = ibm.workLifeBalance.find((d) => d.label.includes('Better'))!;
+const bad = ibm.workLifeBalance.find((d) => d.label.includes('Bad'))!;
+
+const toc = [
+  { id: 'question', label: 'Business question' },
+  { id: 'data', label: 'Dataset' },
+  { id: 'method', label: 'Approach and definitions' },
+  { id: 'overall', label: 'Overall and by job role' },
+  { id: 'groups', label: 'Department, work-life balance, age, gender' },
+  { id: 'reading', label: 'Reading the patterns' },
+  { id: 'next', label: 'Implications' },
+  { id: 'verification', label: 'Verification notes' },
+  { id: 'limitations', label: 'Limitations' },
+  { id: 'deliverables', label: 'Deliverables' },
+];
+const dax = `Total Employees     = COUNT('WA_Fn-UseC_-HR-Employee-Attrition'[Age])
+Employee who left   = CALCULATE([Total Employees], 'WA_Fn-UseC_-HR-Employee-Attrition'[Attrition] = "Yes")
+Attrition Rate (%)  = DIVIDE([Employee who left], [Total Employees])
+
+Age Bracket =
+IF([Age] >= 51, "51-60",
+IF([Age] >= 41, "41-50",
+IF([Age] >= 31, "31-40",
+IF([Age] >= 21, "21-30", "18-20"))))`;
+---
+<CaseStudy
+  project={project}
+  description="Power BI case study on employee attrition in the public IBM HR sample dataset: rates by job role, department, work-life balance, age and gender, recalculated from the source CSV."
+  toc={toc}
+  facts={[
+    { term: 'Dataset', detail: `IBM HR Analytics sample · ${ibm.overall.n.toLocaleString('en-US')} rows · ${ibm.overall.columns} columns` },
+    { term: 'Repository author', detail: 'Kolawole Odewusi' },
+  ]}
+>
+  <section id="question" aria-labelledby="question-h">
+    <h2 id="question-h">Business question</h2>
+    <p> A single company-wide attrition rate says little about where to act. The question behind this dashboard is narrower: <strong>which groups of employees leave at the highest rates</strong>, so that an HR team knows where to look first. </p>
+  </section>
+
+  <section id="data" aria-labelledby="data-h">
+    <h2 id="data-h">Dataset</h2>
+    <p> The <a href={ibm.DATASET}>IBM HR Analytics Employee Attrition &amp; Performance</a> dataset is a public sample published on Kaggle. It holds {ibm.overall.n.toLocaleString('en-US')} fictional employees and {ibm.overall.columns} columns, including age, gender, department, job role, monthly income, years at the company, a 1–4 work-life balance rating, and a yes/no attrition flag. The data isn't connected to any real IBM workforce, and this project has no affiliation with IBM. </p>
+  </section>
+
+  <section id="method" aria-labelledby="method-h">
+    <h2 id="method-h">Approach and definitions</h2>
+    <p> According to the project README, the data was cleaned in Excel: duplicates removed, columns renamed and reordered, data types set, irrelevant columns filtered out and conditional columns added, and values replaced. The analysis was then built in Power BI with DAX measures. </p>
+    <p> <strong>Every rate on this page uses the project's own definition:</strong> employees whose attrition flag is "Yes" divided by all employees <em>in the same group</em>. Because the DAX measure is evaluated in the filter context of each visual, the denominator is the group (a department, a role, an age bracket), not the whole workforce. </p>
+    <details class="data">
+      <summary>View the core DAX measures (from the project README)</summary>
+      <pre><code>{dax}</code></pre>
+    </details>
+  </section>
+
+  <section id="overall" aria-labelledby="overall-h">
+    <h2 id="overall-h">Overall attrition and attrition by job role</h2>
+    <Shot src={shot} alt="Power BI dashboard titled Employee Attrition Analysis: KPI cards for 1,470 total employees, $6.5K average monthly income, 7 average years at the company and a 16.1% attrition rate; a table of attrition by job role from Research Director at 2.5% to Sales Representative at 39.8%; and an executive summary naming the top three roles: Sales Representative 39.8%, Laboratory Technician 23.9% and Human Resources 23.1%." eager>
+      <p>The headline cards and the job-role table. Every value on this screenshot matches a recalculation from the source CSV.</p>
+    </Shot>
+    <p> Overall, <strong>{ibm.overall.left} of {ibm.overall.n.toLocaleString('en-US')} employees left: {rate(ibm.overall)}%</strong>. Behind that average the spread by role is wide. <strong>Sales Representatives leave at {rate(ibm.jobRoles[0])}%</strong> ({ibm.jobRoles[0].left} of {ibm.jobRoles[0].n}), followed by Laboratory Technicians at {rate(ibm.jobRoles[1])}% and the Human Resources role at {rate(ibm.jobRoles[2])}%. Research Directors are lowest at {rate(ibm.jobRoles[8])}%. </p>
+    <p> Rates and counts tell different stories. Laboratory Technicians have the most leavers of any role ({ibm.jobRoles[1].left}), while Sales Representatives have the highest rate from a much smaller group ({ibm.jobRoles[0].n} people). </p>
+  </section>
+
+  <section id="groups" aria-labelledby="groups-h">
+    <h2 id="groups-h">Department, work-life balance, age and gender</h2>
+    <Flag title="No dashboard screenshot of these views was supplied">
+      <p>The project README lists these breakdowns, but the only screenshot available is the job-role page above. The charts below are therefore <strong>calculated directly from the project CSV</strong> using the same definition. They aren't images of the Power BI report.</p>
+    </Flag>
+
+    <ChartFrame kind="calculated" source="Calculated from the project CSV" head={head('Department')} numeric={[1, 2, 3]} rows={table(ibm.departments)}>
+      <BarList title="Attrition rate by department" labelWidth="11rem" max={maxRate} rows={rows(ibm.departments)} />
+      <p slot="caption">Sales is highest at {rate(ibm.departments[0])}%. Research &amp; Development is lowest at {rate(ibm.departments[2])}%, yet it has the most leavers ({ibm.departments[2].left}) because it is by far the largest department.</p>
+    </ChartFrame>
+
+    <ChartFrame kind="calculated" source="Calculated from the project CSV" head={head('Work-life balance rating')} numeric={[1, 2, 3]} rows={table(ibm.workLifeBalance)}>
+      <BarList title="Attrition rate by self-rated work-life balance" labelWidth="7rem" max={maxRate} rows={rows(ibm.workLifeBalance)} />
+      <p slot="caption">Employees rating their balance <strong>"Bad" leave at {rate(bad)}%</strong>, about twice the rate of the other groups. <strong>"Better" has the lowest rate ({rate(better)}%)</strong> but the most leavers ({better.left}), because {better.n} of the {ibm.overall.n.toLocaleString('en-US')} employees gave that rating.</p>
+    </ChartFrame>
+
+    <ChartFrame kind="calculated" source="Calculated from the project CSV, using the project's Age Bracket column" head={head('Age bracket')} numeric={[1, 2, 3]} rows={table(ibm.ageBrackets)}>
+      <BarList title="Attrition rate by age bracket" labelWidth="7rem" max={maxRate} rows={rows(ibm.ageBrackets)} />
+      <p slot="caption">The 18–20 bracket shows {rate(ibm.ageBrackets[0])}%, but it holds only {ibm.ageBrackets[0].n} people ({ibm.ageBrackets[0].left} leavers), so a few departures move the rate a lot. From 21–30 the rate falls with age, to {rate(ibm.ageBrackets[3])}% for 41–50, then sits at {rate(ibm.ageBrackets[4])}% for 51–60.</p>
+    </ChartFrame>
+
+    <ChartFrame kind="calculated" source="Calculated from the project CSV" head={head('Gender')} numeric={[1, 2, 3]} rows={table(ibm.gender)}>
+      <BarList title="Attrition rate by gender" labelWidth="7rem" max={maxRate} rows={rows(ibm.gender)} />
+      <p slot="caption">Male employees leave at {rate(ibm.gender[0])}% and female employees at {rate(ibm.gender[1])}%, a gap of {(Number(rate(ibm.gender[0])) - Number(rate(ibm.gender[1]))).toFixed(1)} percentage points.</p>
+    </ChartFrame>
+  </section>
+
+  <section id="reading" aria-labelledby="reading-h">
+    <h2 id="reading-h">Reading the patterns</h2>
+    <p> These are <strong>descriptive differences between groups</strong>, not causes. They show where attrition is concentrated, not why people left. Three cautions apply: </p>
+    <ul>
+      <li><strong>The groupings overlap.</strong> All 83 Sales Representatives sit in the Sales department, and they skew young (median age 30 against 36 overall; 53% are under 31 against 26% of all employees). The role, department and age patterns are partly the same employees seen three ways.</li>
+      <li><strong>Some groups are small.</strong> Rates for groups of a few dozen people (18–20 year olds, the HR department) are unstable.</li>
+      <li><strong>No significance testing was done.</strong> Modest gaps, such as the one between genders, may not hold up in other data.</li>
+    </ul>
+  </section>
+
+  <section id="next" aria-labelledby="next-h">
+    <h2 id="next-h">Implications for an HR team</h2>
+    <p>The project README proposes the following. They are suggested next steps, and none was tested in this project:</p>
+    <ul>
+      <li><strong>Targeted retention:</strong> focus first on the roles with the highest rates: Sales Representatives, Laboratory Technicians and the Human Resources role.</li>
+      <li><strong>Engagement programmes:</strong> mentorship, flexible working and career development in the high-attrition areas.</li>
+      <li><strong>Compensation and workload review:</strong> check whether workload, pay satisfaction or limited growth contribute in specific roles.</li>
+      <li><strong>Exit interviews:</strong> collect structured reasons for leaving, especially in high-turnover roles, since the dataset has none.</li>
+      <li><strong>Ongoing monitoring:</strong> track attrition, tenure and job satisfaction regularly with a dashboard like this one.</li>
+    </ul>
+  </section>
+
+  <section id="verification" aria-labelledby="verification-h">
+    <h2 id="verification-h">Verification notes</h2>
+    <p>Figures were recalculated from the CSV in the project repository with the definition above. Most of the README's figures match; two don't, and the corrected values are used on this page.</p>
+    <Flag kind="check" title="Matches the source data">
+      <p>Overall 16.1% · Sales department 20.6% · Sales Representative 39.8% · Laboratory Technician 23.9% · Human Resources role 23.1% · ages 18–20 57.1% · male 17.0%, female 14.8% · every row of the dashboard's job-role table · average monthly income $6.5K · average tenure 7 years.</p>
+    </Flag>
+    <Flag title={`Human Resources department: ${rate(hrDept)}%, not 0.8%`}>
+      <p>The README describes the HR department as having the lowest rate, at 0.8%. Recalculated, the department's rate is {rate(hrDept)}% ({hrDept.left} of {hrDept.n}), and the lowest department is Research &amp; Development at {rate(ibm.departments[2])}%. The 0.8% figure equals {hrDept.left} ÷ {ibm.overall.n.toLocaleString('en-US')}: HR leavers as a share of the whole workforce rather than of the department.</p>
+    </Flag>
+    <Flag title={`"Better" work-life balance: the lowest rate, not the highest`}>
+      <p>The README says employees reporting "better" work-life balance show the highest attrition. By rate, "Better" is the lowest group ({rate(better)}%) and "Bad" the highest ({rate(bad)}%). "Better" does have the most leavers by count ({better.left}), because it is the largest group.</p>
+    </Flag>
+  </section>
+
+  <section id="limitations" aria-labelledby="limitations-h">
+    <h2 id="limitations-h">Limitations</h2>
+    <ul>
+      <li><strong>Fictional data.</strong> The dataset was created for practice and may not reflect real workforce behaviour.</li>
+      <li><strong>No time dimension.</strong> Attrition is a single yes/no flag with no dates, so trends over time can't be measured.</li>
+      <li><strong>No reasons for leaving.</strong> There is no exit-reason field, which is why the implications above are framed as things to investigate.</li>
+      <li><strong>Limited context.</strong> Location, team, manager and external conditions aren't in the data.</li>
+    </ul>
+  </section>
+
+  <section id="deliverables" aria-labelledby="deliverables-h">
+    <h2 id="deliverables-h">Deliverables</h2>
+    <ul class="deliv">
+      <li><a href={ibm.REPO}>Repository: Power BI file, source CSV and README with DAX measures</a> <span class="mono small muted">PBIX · CSV</span></li>
+      <li><a href={ibm.DATASET}>Original dataset on Kaggle</a> <span class="mono small muted">External</span></li>
+    </ul>
+  </section>
+</CaseStudy>
+
+<style>
+  .deliv { list-style: none; padding: 0; }
+  .deliv li { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: baseline; padding: var(--s-3) 0; border-bottom: 1px solid var(--rule); margin: 0; }
+</style>

@@ -1,0 +1,10 @@
+---
+import { STATUS_LABEL, type Status } from '../data/projects';
+interface Props { status: Status }
+const s = STATUS_LABEL[Astro.props.status];
+---
+<span class="status"><span aria-hidden="true">{s.glyph}</span> {s.text}</span>
+
+<style>
+  .status { display: inline-flex; gap: 0.4em; font: 500 0.75rem/1.4 var(--font-mono); letter-spacing: 0.03em; text-transform: uppercase; color: var(--cobalt); }
+</style>

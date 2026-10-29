@@ -1,0 +1,224 @@
+---
+import CaseStudy from '../../../layouts/CaseStudy.astro';
+import Shot from '../../../components/Shot.astro';
+import ChartFrame from '../../../components/ChartFrame.astro';
+import ColumnChart from '../../../components/ColumnChart.astro';
+import LineChart from '../../../components/LineChart.astro';
+import BarList from '../../../components/BarList.astro';
+import Flag from '../../../components/Flag.astro';
+import { projects } from '../../../data/projects';
+import * as nw from '../../../data/northwind';
+import page1 from '../../../assets/northwind/page-1-sales-revenue.png';
+import page2 from '../../../assets/northwind/page-2-product-category.png';
+import page3 from '../../../assets/northwind/page-3-regional-operational-people.png';
+
+const project = projects.find((p) => p.slug === 'northwind-traders-bi-report')!;
+const usd = (v: number) => `$${v.toLocaleString('en-US')}`;
+const T = nw.totals.revenue;
+const q = Object.fromEntries(nw.quarters.rows.map((r) => [r.label, r.value]));
+const q1Growth = ((q['Q1 2015'] / q['Q1 2014'] - 1) * 100).toFixed(1);
+const peakMonth = nw.months.rows.reduce((a, b) => (b.value > a.value ? b : a));
+const bevDairy = nw.categories.rows[0].value + nw.categories.rows[1].value;
+const usaGer = nw.countries.rows[0].value + nw.countries.rows[1].value;
+const top3 = nw.employees.rows.slice(0, 3).reduce((a, r) => a + r.value, 0);
+const bottom3 = nw.employees.rows.slice(-3);
+const bottom3Rev = bottom3.reduce((a, r) => a + r.value, 0);
+const bottom3Orders = bottom3.reduce((a, r) => a + r.orders, 0);
+const discTop10 = nw.topProducts.rows.filter((r) => r.discontinued).reduce((a, r) => a + r.value, 0);
+const perOrder = nw.shippers.rows.map((s) => ({ ...s, per: s.freight / s.orders }));
+
+const toc = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'questions', label: 'Questions' },
+  { id: 'approach', label: 'Data and approach' },
+  { id: 'sales', label: 'Sales and revenue' },
+  { id: 'products', label: 'Products and categories' },
+  { id: 'regional', label: 'Regional, operational and people' },
+  { id: 'recommendations', label: 'Recommendations' },
+  { id: 'verification', label: 'Verification notes' },
+  { id: 'limitations', label: 'Limitations' },
+  { id: 'deliverables', label: 'Deliverables' },
+];
+---
+<CaseStudy
+  project={project}
+  description="Power BI case study on Northwind Traders sales: revenue trend, product mix, markets, shippers and the sales team, with every figure checked against the written report."
+  toc={toc}
+  facts={[
+    { term: 'Deliverables', detail: '3-page Power BI report · 9-page written report (PDF)' },
+    { term: 'Repository author', detail: 'Kolawole Odewusi' },
+  ]}
+>
+  <section id="overview" aria-labelledby="overview-h">
+    <h2 id="overview-h">Overview</h2>
+    <p> Northwind Traders is a fictional gourmet food supplier whose sample database is widely used for analytics practice. This project turns 23 months of its order data (July 2013 to May 2015) into a three-page Power BI report and a written report that explains each page and closes with recommendations. </p>
+    <p> The dataset covers {nw.totals.orders} orders, {nw.totals.customers} customers in 21 countries, 77 products in 8 categories, 9 sales employees and 3 shipping companies (report, p.&nbsp;1). Total revenue across the period is <strong>{usd(T)}</strong> (p.&nbsp;2). </p>
+  </section>
+
+  <section id="questions" aria-labelledby="questions-h">
+    <h2 id="questions-h">The questions the report answers</h2>
+    <p>Each report page is built around one group of questions:</p>
+    <ol>
+      <li><strong>Sales and revenue:</strong> how has revenue moved over time, by quarter and by month?</li>
+      <li><strong>Products and categories:</strong> which categories and products generate revenue, how much is given away in discounts, and how much revenue comes from products that have since been discontinued?</li>
+      <li><strong>Regional, operational and people:</strong> which countries generate revenue, how do the three shippers compare on freight, and how is revenue spread across the sales team?</li>
+    </ol>
+  </section>
+
+  <section id="approach" aria-labelledby="approach-h">
+    <h2 id="approach-h">Data and approach</h2>
+    <p> The model relates seven tables: orders, order details (unit price, quantity and discount per line), customers, products, categories, employees and shippers (p.&nbsp;1). According to the project README, Excel was used for initial exploration and Power BI for the data model, DAX measures and visuals. </p>
+    <p> Year and Category slicers appear on all three pages and are synced, so a filter set on one page carries to the others (p.&nbsp;1). The written report then walks through each visual, gives the underlying figures in tables, and ends with six recommendations (p.&nbsp;9). </p>
+  </section>
+
+  <section id="sales" aria-labelledby="sales-h">
+    <h2 id="sales-h">1 · Sales and revenue overview</h2>
+    <Shot src={page1} alt="Power BI page titled Sales and Revenue Overview: KPI cards for total revenue $1.27M, total orders 830 and total customers 830; a treemap of orders by month; a column chart of revenue by quarter; a line chart of revenue by calendar month; and Year and Category slicers." eager>
+      <p>Report page 1. Note that the "Total Customers" card reads 830; see the verification notes below.</p>
+    </Shot>
+
+    <p> Revenue rises through most of the period. The strongest quarter is <strong>Q1 2015 at {usd(q['Q1 2015'])}</strong>, {q1Growth}% above Q1 2014 ({usd(q['Q1 2014'])}), which the report rounds to 116% (p.&nbsp;2). The dashboard sorts its quarterly columns newest first; the recreation below puts them in time order. </p>
+
+    <ChartFrame kind="recreated" source={`Recreated from report figures, page ${nw.quarters.page}`}
+      head={['Quarter', 'Revenue']} numeric={[1]}
+      rows={nw.quarters.rows.map((r) => [r.label + (r.partial ? ' (partial)' : ''), usd(r.value)])}>
+      <ColumnChart id="nw-q" rows={nw.quarters.rows} format={usd} labelled={['Q1 2015', 'Q2 2015']}
+        ticks={[0, 100_000, 200_000, 300_000]}
+        title="Northwind revenue by quarter, Q3 2013 to Q2 2015"
+        desc="Quarterly revenue rises from $79,729 in Q3 2013 to $298,492 in Q1 2015. Q2 2015 shows $142,132 but covers only April and part of May." />
+      <p slot="caption">Q2 2015 is shown in grey: the data ends in May 2015, so the quarter is incomplete (p.&nbsp;2 labels it "partial") and its lower total is not evidence of a decline.</p>
+    </ChartFrame>
+
+    <p> By month, the highest value in the report's monthly table is <strong>{peakMonth.label} at {usd(peakMonth.value)}</strong> (p.&nbsp;3). May 2015 records only {usd(18_334)} because the data stops partway through the month. </p>
+
+    <ChartFrame kind="recreated" source={`Recreated from report figures, pages ${nw.months.pages}`}
+      head={['Month', 'Revenue']} numeric={[1]}
+      rows={nw.months.rows.map((r) => [r.label + (r.partial ? ' (partial)' : ''), usd(r.value)])}>
+      <LineChart id="nw-m" rows={nw.months.rows} format={usd} labelled={['Apr 2015']} xEvery={3}
+        ticks={[0, 50_000, 100_000, 150_000]}
+        title="Northwind revenue by month, July 2013 to May 2015"
+        desc="Monthly revenue climbs unevenly from about $26,000 to a high of $123,799 in April 2015. The last point, May 2015, is a partial month." />
+      <p slot="caption">The dashboard's line chart groups months by calendar name across years (its January point, about $155K, is January 2014 plus January 2015). This recreation keeps each month separate so the trend over time is visible.</p>
+    </ChartFrame>
+  </section>
+
+  <section id="products" aria-labelledby="products-h">
+    <h2 id="products-h">2 · Product and category intelligence</h2>
+    <Shot src={page2} alt="Power BI page titled Product and Category Intelligence: KPI cards for 77 total, 69 active and 8 discontinued products; a donut chart of active versus discontinued revenue labelled 89.61% and 10.39%; bar charts of discount given and net revenue by category, revenue by category, and top products by revenue.">
+      <p>Report page 2. The donut's 10.39% does not match the report's figure for discontinued products; see the verification notes.</p>
+    </Shot>
+
+    <p> Two categories lead: <strong>Beverages ({usd(nw.categories.rows[0].value)}, {nw.pct(nw.categories.rows[0].value, T)}%)</strong> and <strong>Dairy Products ({usd(nw.categories.rows[1].value)}, {nw.pct(nw.categories.rows[1].value, T)}%)</strong>, together {nw.pct(bevDairy, T)}% of revenue (p.&nbsp;4). Beverages also carries the largest discount total, $18,659 (p.&nbsp;5). </p>
+
+    <ChartFrame kind="recreated" source={`Recreated from report figures, page ${nw.categories.page}`}
+      head={['Category', 'Revenue', 'Share']} numeric={[1, 2]}
+      rows={nw.categories.rows.map((r) => [r.label, usd(r.value), `${nw.pct(r.value, T)}%`])}>
+      <BarList title="Revenue by category" labelWidth="9.5rem"
+        rows={nw.categories.rows.map((r) => ({ label: r.label, value: r.value, display: usd(r.value), tip: `${r.label} · ${nw.pct(r.value, T)}% of revenue` }))} />
+    </ChartFrame>
+
+    <p> The top product is Côte de Blaye at {usd(141_397)}. Eight of the 77 products are discontinued, yet one of them, <strong>Thüringer Rostbratwurst ({usd(80_369)})</strong>, ranks second across the whole catalogue (pp.&nbsp;4–5). The report reads this as a reason to review how discontinuation decisions are made; the data shows the revenue, not why the product was withdrawn. </p>
+
+    <ChartFrame kind="recreated" source={`Recreated from report figures, pages ${nw.topProducts.pages}`}
+      head={['Product', 'Category', 'Revenue', 'Status']} numeric={[2]}
+      rows={nw.topProducts.rows.map((r) => [r.label, r.category, usd(r.value), r.discontinued ? 'Discontinued' : 'Active'])}>
+      <BarList title="Top 10 products by revenue (grey = discontinued)" labelWidth="12rem"
+        rows={nw.topProducts.rows.map((r) => ({ label: r.label, value: r.value, display: usd(r.value), muted: r.discontinued, note: r.discontinued ? 'discontinued' : undefined, tip: r.category }))} />
+    </ChartFrame>
+  </section>
+
+  <section id="regional" aria-labelledby="regional-h">
+    <h2 id="regional-h">3 · Regional, operational and people intelligence</h2>
+    <Shot src={page3} alt="Power BI page titled Regional, Operational and People Intelligence: a column chart of total freight and total orders by shipping company; a column chart of employee sales; a funnel of revenue by country from USA to Poland; and a bar chart of freight as a percentage of revenue by country, led by Argentina at about 7%.">
+      <p>Report page 3. On the shipper chart, order counts share the freight axis, so the order bars are too short to read; the counts below come from the report's table (p.&nbsp;7).</p>
+    </Shot>
+
+    <h3>Markets</h3>
+    <p> The USA ({usd(nw.countries.rows[0].value)}) and Germany ({usd(nw.countries.rows[1].value)}) together account for <strong>{nw.pct(usaGer, T)}%</strong> of revenue (p.&nbsp;6). The country ranking in the dashboard funnel matches the report's table. </p>
+    <ChartFrame kind="recreated" source={`Recreated from report figures, page ${nw.countries.page}`}
+      head={['Country', 'Revenue', 'Share']} numeric={[1, 2]}
+      rows={nw.countries.rows.map((r) => [r.label, usd(r.value), `${nw.pct(r.value, T)}%`])}>
+      <BarList title="Top 10 countries by revenue (all 21 in the data table)" labelWidth="6.5rem"
+        rows={nw.countries.rows.slice(0, 10).map((r) => ({ label: r.label, value: r.value, display: usd(r.value), tip: `${nw.pct(r.value, T)}% of revenue` }))} />
+    </ChartFrame>
+
+    <h3>Shippers</h3>
+    <p> United Package carried the most orders (326) and the most freight ({usd(91_570)}); Speedy Express carried 249 orders for {usd(52_291)} (p.&nbsp;7). Dividing freight by orders gives the comparison below. It describes cost per order only: the data has no shipment weights or routes, so it can't show which carrier is cheaper for the same delivery. </p>
+    <ChartFrame kind="calculated" source="Calculated from report figures, page 7 (freight ÷ orders)"
+      head={['Shipper', 'Orders', 'Total freight', 'Freight per order']} numeric={[1, 2, 3]}
+      rows={perOrder.map((s) => [s.label, s.orders, usd(s.freight), usd(Math.round(s.per))])}>
+      <BarList title="Average freight per order" labelWidth="8.5rem"
+        rows={perOrder.map((s) => ({ label: s.label, value: s.per, display: usd(Math.round(s.per)), tip: `${s.orders} orders · ${usd(s.freight)} freight` }))} />
+    </ChartFrame>
+
+    <h3>Sales team</h3>
+    <p> Margaret Peacock leads with {usd(232_891)} across 156 orders. The top three employees account for {nw.pct(top3, T)}% of team revenue (the report rounds to 49%), and the bottom three ({bottom3.map((e) => e.label.split(' ')[1]).join(', ')}) for {nw.pct(bottom3Rev, T)}% across {bottom3Orders} orders (pp.&nbsp;7–9). The data doesn't record territories, start dates or targets, so these totals show who sold most, not how well each person performed against comparable conditions. </p>
+    <ChartFrame kind="recreated" source={`Recreated from report figures, pages ${nw.employees.pages}`}
+      head={['Employee', 'Revenue', 'Orders']} numeric={[1, 2]}
+      rows={nw.employees.rows.map((r) => [r.label, usd(r.value), r.orders])}>
+      <BarList title="Revenue by sales employee" labelWidth="9.5rem"
+        rows={nw.employees.rows.map((r) => ({ label: r.label, value: r.value, display: usd(r.value), tip: `${r.orders} orders` }))} />
+    </ChartFrame>
+  </section>
+
+  <section id="recommendations" aria-labelledby="recommendations-h">
+    <h2 id="recommendations-h">Recommendations, and how far the evidence supports them</h2>
+    <p>The report ends with six recommendations (p.&nbsp;9). Each is listed here with what the data does and doesn't establish.</p>
+    <div class="table-scroll">
+      <table class="recs">
+        <thead><tr><th scope="col">Recommendation in the report</th><th scope="col">Evidence status</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">1. Invest further in the USA and Germany</th><td><strong>Supported as a description:</strong> the two markets hold {nw.pct(usaGer, T)}% of revenue. Whether more investment would pay back isn't something sales history can show.</td></tr>
+          <tr><th scope="row">2. Address freight costs for Austria and the USA</th><td><strong>On hold:</strong> the freight-to-revenue percentages in the report and in the dashboard disagree (see verification notes), so the country ranking this rests on isn't settled.</td></tr>
+          <tr><th scope="row">3. Review discontinued-product decisions</th><td><strong>Partly supported:</strong> a discontinued product ranks second by revenue. The overall discontinued share differs between the report and the dashboard.</td></tr>
+          <tr><th scope="row">4. Standardise discount policy</th><td><strong>Not shown here:</strong> the report's statement about discount bands isn't backed by a table or chart in the supplied materials, so this case study doesn't repeat it.</td></tr>
+          <tr><th scope="row">5. Develop lower-performing sales staff</th><td><strong>A hypothesis:</strong> revenue differs widely between employees, but without territory, tenure or target data the gap can't be attributed to performance.</td></tr>
+          <tr><th scope="row">6. Shift order volume toward Speedy Express</th><td><strong>Partly supported:</strong> it has the lowest freight per order in the report's figures. Without weights and destinations, that isn't proof it would be cheaper for the same shipments.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="verification" aria-labelledby="verification-h">
+    <h2 id="verification-h">Verification notes</h2>
+    <p> Every figure on this page was checked against the written report. The report's monthly, quarterly, category, country and employee tables each add up to the same {usd(T)} total. The items below don't reconcile and are presented as open, not resolved. </p>
+    <Flag title="Total customers: 830 on the dashboard, 89 in the report">
+      <p>The KPI card on report page 1 shows 830, the same as the order count. The written report states 89 unique customers (p.&nbsp;2). This page uses the report's figure and leaves the card's measure to be checked.</p>
+    </Flag>
+    <Flag title="Discontinued share of revenue: 10.39% on the dashboard, 14.6% in the report">
+      <p>The report gives {usd(nw.productStatus.discontinued)} ({nw.pct(nw.productStatus.discontinued, T)}%) for discontinued products (p.&nbsp;4). The three discontinued products in its own top-ten table already total {usd(discTop10)} ({nw.pct(discTop10, T, 2)}%), more than the donut's 10.39%. The supplied files don't show which calculation the donut uses, so no discontinued share is quoted as a headline here.</p>
+    </Flag>
+    <Flag title="Freight as a share of revenue by country: the two sources disagree">
+      <p>The report lists Argentina at 21.8%, Austria at 21.7% and the USA at 18.8% (p.&nbsp;7). The dashboard chart tops out near 7% for Argentina and orders the countries differently. The cause can't be determined from the supplied files, so this case study doesn't rank countries by freight burden.</p>
+    </Flag>
+    <Flag title="Statements not repeated">
+      <p>The report's text describes December 2014 as the peak month, but its own table shows April 2015 ({usd(peakMonth.value)}) above December 2014 ($71,398). It also describes "seasonal peaks" in Q4 2013 and Q4 2014, but in the quarterly table each of those quarters is followed by a higher one. Neither statement is used here.</p>
+    </Flag>
+  </section>
+
+  <section id="limitations" aria-labelledby="limitations-h">
+    <h2 id="limitations-h">Limitations</h2>
+    <ul>
+      <li><strong>Fictional data.</strong> Northwind is a teaching dataset. The patterns are useful for practice; they aren't evidence about any real business.</li>
+      <li><strong>Coverage.</strong> The data runs from July 2013 to part of May 2015, so the first and last quarters aren't comparable with the rest.</li>
+      <li><strong>Revenue, not profit.</strong> There are no product costs, so the analysis can't speak to margin; freight is the only cost in the data.</li>
+      <li><strong>Descriptive only.</strong> The report describes what happened. It doesn't test causes, so its recommendations are starting points for investigation, not proven actions.</li>
+    </ul>
+  </section>
+
+  <section id="deliverables" aria-labelledby="deliverables-h">
+    <h2 id="deliverables-h">Deliverables</h2>
+    <ul class="deliv">
+      <li><a href={nw.REPORT_PDF}>Written report (PDF, 9 pages)</a> <span class="mono small muted">PDF</span></li>
+      <li><a href={nw.REPO}>Repository with the Power BI source file</a> <span class="mono small muted">PBIX</span></li>
+      <li><a href={nw.LIVE_DASHBOARD}>Interactive report on Power BI</a> <span class="mono small muted">Power BI · opens externally</span></li>
+    </ul>
+  </section>
+</CaseStudy>
+
+<style>
+  .recs th[scope='row'] { width: 38%; font-weight: 600; color: var(--ink); }
+  .recs td { color: var(--ink-2); }
+  .deliv { list-style: none; padding: 0; }
+  .deliv li { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: baseline; padding: var(--s-3) 0; border-bottom: 1px solid var(--rule); margin: 0; }
+</style>

@@ -1,0 +1,184 @@
+---
+import Base from '../layouts/Base.astro';
+import ColumnChart from '../components/ColumnChart.astro';
+import Source from '../components/Source.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { projects } from '../data/projects';
+import { quarters } from '../data/northwind';
+import nwShot from '../assets/northwind/page-1-sales-revenue.png';
+import ibmShot from '../assets/ibm/attrition-by-job-role.png';
+
+const usd = (v: number) => `$${v.toLocaleString('en-US')}`;
+const images = { 'northwind-traders-bi-report': nwShot, 'ibm-employee-attrition': ibmShot } as const;
+const EMAIL = 'kolawoleodewusi@gmail.com';
+---
+<Base title="Kolawole Odewusi" description="Kolawole Odewusi is a Business Analyst and AI Evaluation Specialist in Lagos, Nigeria. Case studies in business intelligence and analysis, with every figure checked against its source.">
+  <section class="hero wrap" aria-labelledby="hero-h">
+    <div class="hero__text">
+      <p class="eyebrow">Business Analyst | AI Evaluation Specialist</p>
+      <h1 id="hero-h">I turn complex information into clear decisions.</h1>
+      <p class="lede">Business analysis, data-informed problem-solving and AI evaluation focused on understanding problems, improving processes and delivering reliable insights.</p>
+      <div class="ctas">
+        <a class="btn btn--primary" href="/work/">Explore my work</a>
+        <a class="btn" href="#contact">Contact me</a>
+      </div>
+    </div>
+
+    <figure class="hero__fig" aria-labelledby="hero-fig-cap">
+      <div class="annot">
+        <ColumnChart id="hero-q" rows={quarters.rows} format={usd} labelled={['Q1 2015']} highlight={['Q1 2015']}
+          ticks={[0, 100_000, 200_000, 300_000]}
+          title="Northwind Traders revenue by quarter"
+          desc="Quarterly revenue from Q3 2013 to Q2 2015, peaking at $298,492 in Q1 2015. Q2 2015 is a partial quarter." />
+        <ol class="notes" aria-label="Analyst notes on this chart">
+          <li><span class="mk" aria-hidden="true">✓</span><span><strong>Q1 2015: $298,492,</strong> 115.8% above Q1 2014. Agrees with the report's monthly table to within $1.</span></li>
+          <li><span class="mk" aria-hidden="true">⚑</span><span><strong>Q2 2015 is partial.</strong> The data ends in May, so the drop isn't a decline.</span></li>
+        </ol>
+      </div>
+      <figcaption id="hero-fig-cap">
+        <Source kind="recreated">Recreated from report figures, page 2</Source>
+        <span>From the <a href="/work/northwind-traders-bi-report/">Northwind Traders case study</a>.</span>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="section wrap" id="work" aria-labelledby="work-h">
+    <div class="sec-head">
+      <p class="eyebrow">Selected work</p>
+      <h2 id="work-h">Case studies</h2>
+      <p class="muted">Each case study states its context and data source, labels every visual as an original screenshot or a recreation, and flags figures that don't reconcile.</p>
+    </div>
+    <div class="cards">
+      {projects.map((p, i) => <ProjectCard project={p} image={images[p.slug as keyof typeof images]} feature={i === 0} />)}
+    </div>
+    <p class="more"><a href="https://github.com/WoleTheAnalyst">More projects on GitHub →</a></p>
+  </section>
+
+  <section class="section wrap" id="method" aria-labelledby="method-h">
+    <div class="sec-head">
+      <p class="eyebrow">Method</p>
+      <h2 id="method-h">How I work with evidence</h2>
+    </div>
+    <ol class="method">
+      <li>
+        <span class="num mono">01</span>
+        <h3>Frame the question</h3>
+        <p>Start from the decision someone needs to make, then work out which data can actually inform it.</p>
+      </li>
+      <li>
+        <span class="num mono">02</span>
+        <h3>Check every figure at the source</h3>
+        <p>Recalculating the IBM attrition data from its CSV showed the HR department's rate is 19.0%, not the 0.8% stated in the project README. <a href="/work/ibm-employee-attrition/#verification">See the check</a></p>
+      </li>
+      <li>
+        <span class="num mono">03</span>
+        <h3>Separate what happened from why</h3>
+        <p>Descriptive patterns are stated as patterns. Causes are left open unless the data can show them.</p>
+      </li>
+      <li>
+        <span class="num mono">04</span>
+        <h3>Grade the recommendation</h3>
+        <p>Each Northwind recommendation is marked as supported, partly supported, a hypothesis or on hold. <a href="/work/northwind-traders-bi-report/#recommendations">See the table</a></p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="section wrap" id="capabilities" aria-labelledby="cap-h">
+    <div class="sec-head">
+      <p class="eyebrow">Capabilities</p>
+      <h2 id="cap-h">What the work demonstrates</h2>
+      <p class="muted">Listed only where a published case study shows it.</p>
+    </div>
+    <div class="caps">
+      <div>
+        <h3>Business analysis</h3>
+        <ul>
+          <li>Turning a broad brief into specific business questions <a class="ev" href="/work/northwind-traders-bi-report/#questions">Northwind</a></li>
+          <li>Recommendations with stated evidence and limits <a class="ev" href="/work/northwind-traders-bi-report/#recommendations">Northwind</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Data and business intelligence</h3>
+        <ul>
+          <li>Power BI reports and DAX measures <a class="ev" href="/work/northwind-traders-bi-report/">Northwind</a> <a class="ev" href="/work/ibm-employee-attrition/#method">IBM</a></li>
+          <li>Excel for exploration and data cleaning <a class="ev" href="/work/ibm-employee-attrition/#method">IBM</a></li>
+          <li>Group comparisons using rates, counts and denominators <a class="ev" href="/work/ibm-employee-attrition/#groups">IBM</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Quality and verification</h3>
+        <ul>
+          <li>Reconciling reported figures with source data <a class="ev" href="/work/ibm-employee-attrition/#verification">IBM</a> <a class="ev" href="/work/northwind-traders-bi-report/#verification">Northwind</a></li>
+          <li>Documenting discrepancies without guessing their cause <a class="ev" href="/work/northwind-traders-bi-report/#verification">Northwind</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap" id="contact" aria-labelledby="contact-h">
+    <div class="contact">
+      <div>
+        <p class="eyebrow">Contact</p>
+        <h2 id="contact-h">Let's talk about a problem worth solving.</h2>
+        <p class="muted">Open to business analysis and AI evaluation roles, projects and collaboration. Based in Lagos, Nigeria.</p>
+      </div>
+      <div class="contact__list">
+        <p class="mail"> <a id="email" href={`mailto:${EMAIL}`}>{EMAIL}</a> <button class="btn copy" type="button" data-copy={EMAIL} data-target="email" data-status="copy-status" hidden>Copy</button> </p>
+        <p id="copy-status" class="small muted" role="status" aria-live="polite"></p>
+        <p><a href="https://github.com/WoleTheAnalyst">github.com/WoleTheAnalyst</a></p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: var(--s-8); align-items: center; padding-block: var(--s-9) var(--s-8); }
+  .hero h1 { font-size: clamp(2.6rem, 1.8rem + 3.4vw, 4.6rem); max-width: 13ch; }
+  .ctas { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-6); }
+  .hero__fig { margin: 0; }
+  .annot { border: 1px solid var(--rule); background: color-mix(in srgb, var(--paper-2) 45%, var(--paper)); padding: var(--s-5) var(--s-5) var(--s-4); border-radius: var(--radius); }
+  .notes { list-style: none; padding: var(--s-4) 0 0; margin: var(--s-3) 0 0; border-top: 1px dashed var(--rule-strong); display: grid; gap: var(--s-3); font-size: var(--step--1); max-width: none; }
+  .notes li { display: grid; grid-template-columns: 1.5rem 1fr; gap: var(--s-2); margin: 0; color: var(--ink-2); }
+  .notes strong { color: var(--ink); font-weight: 600; }
+  .mk { font-family: var(--font-mono); color: var(--cobalt); }
+  .hero__fig figcaption { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; margin-top: var(--s-3); font-size: var(--step--1); color: var(--ink-2); }
+  @media (prefers-reduced-motion: no-preference) {
+    .annot :global(.col) { transform-origin: bottom; transform-box: fill-box; animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
+    .notes li { animation: fade .5s ease both; animation-delay: .8s; }
+    .notes li + li { animation-delay: 1s; }
+  }
+  @keyframes rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .sec-head { max-width: 46rem; margin-bottom: var(--s-7); }
+  .cards { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--s-6); }
+  .more { margin-top: var(--s-6); }
+
+  .method { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-6); max-width: none; }
+  .method li { margin: 0; border-top: 2px solid var(--ink); padding-top: var(--s-4); }
+  .method .num { color: var(--cobalt); font-size: var(--step--1); }
+  .method h3 { margin: var(--s-2) 0; }
+  .method p { font-size: var(--step--1); color: var(--ink-2); }
+
+  .caps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-6); }
+  .caps h3 { border-bottom: 1px solid var(--rule); padding-bottom: var(--s-2); }
+  .caps ul { list-style: none; padding: 0; font-size: var(--step--1); }
+  .caps li { margin: 0 0 var(--s-3); }
+  .ev { display: inline-block; font: 500 0.72rem/1.6 var(--font-mono); padding: 0 6px; border: 1px solid var(--rule); border-radius: var(--radius); text-decoration: none; margin-left: 4px; }
+  .ev:hover { border-color: var(--cobalt); }
+
+  .contact { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--s-7); align-items: end; }
+  .contact h2 { max-width: 18ch; }
+  .mail { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; font-size: var(--step-1); margin: 0; }
+  .mail a { word-break: break-all; }
+  .copy[hidden] { display: none; }
+  .contact__list p { margin-bottom: var(--s-3); }
+
+  @media (max-width: 1000px) {
+    .hero { grid-template-columns: 1fr; gap: var(--s-7); padding-top: var(--s-8); }
+    .method { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .caps { grid-template-columns: 1fr; }
+    .contact { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) { .method { grid-template-columns: 1fr; } .annot { padding: var(--s-4) var(--s-3); } }
+</style>
