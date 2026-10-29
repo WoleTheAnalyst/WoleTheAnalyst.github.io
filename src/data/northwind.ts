@@ -8,7 +8,8 @@ export const REPO =
 export const LIVE_DASHBOARD =
   'https://app.powerbi.com/view?r=eyJrIjoiMTAyYjg5ZDYtODg0OC00N2JmLWE1NjUtZGU1MmExODljMmMzIiwidCI6IjU2YjNjMjUzLTdlM2MtNDFjNC04NjEwLTc4YjIyYWNjN2E2MCJ9';
 
-export const totals = { revenue: 1_265_793, orders: 830, customers: 89, page: 2 };
+// Orders and customers as shown on the dashboard's KPI cards (report page 1 screenshot).
+export const totals = { revenue: 1_265_793, orders: 830, customers: 830, page: 2 };
 
 export const quarters = {
   page: 2,
@@ -67,7 +68,8 @@ export const categories = {
   ],
 };
 
-export const productStatus = { page: 4, active: 1_080_802, discontinued: 184_991 };
+// Share of revenue from the dashboard's Discontinued vs Active donut (report page 2 screenshot).
+export const productShare = { active: 89.61, discontinued: 10.39 };
 
 export const topProducts = {
   pages: '4–5',

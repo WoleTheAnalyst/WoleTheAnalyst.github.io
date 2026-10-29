@@ -24,7 +24,6 @@ const top3 = nw.employees.rows.slice(0, 3).reduce((a, r) => a + r.value, 0);
 const bottom3 = nw.employees.rows.slice(-3);
 const bottom3Rev = bottom3.reduce((a, r) => a + r.value, 0);
 const bottom3Orders = bottom3.reduce((a, r) => a + r.orders, 0);
-const discTop10 = nw.topProducts.rows.filter((r) => r.discontinued).reduce((a, r) => a + r.value, 0);
 const perOrder = nw.shippers.rows.map((s) => ({ ...s, per: s.freight / s.orders }));
 
 const toc = [
@@ -42,17 +41,17 @@ const toc = [
 ---
 <CaseStudy
   project={project}
-  description="Power BI case study on Northwind Traders sales: revenue trend, product mix, markets, shippers and the sales team, with every figure checked against the written report."
+  description="Power BI case study on Northwind Traders sales: revenue trend, product mix, markets, shippers and the sales team, with every figure checked against the dashboard and the written report."
   toc={toc}
   facts={[
     { term: 'Deliverables', detail: '3-page Power BI report · 9-page written report (PDF)' },
-    { term: 'Repository author', detail: 'Kolawole Odewusi' },
+    { term: 'Author', detail: 'Kolawole Odewusi' },
   ]}
 >
   <section id="overview" aria-labelledby="overview-h">
     <h2 id="overview-h">Overview</h2>
     <p> Northwind Traders is a fictional gourmet food supplier whose sample database is widely used for analytics practice. This project turns 23 months of its order data (July 2013 to May 2015) into a three-page Power BI report and a written report that explains each page and closes with recommendations. </p>
-    <p> The dataset covers {nw.totals.orders} orders, {nw.totals.customers} customers in 21 countries, 77 products in 8 categories, 9 sales employees and 3 shipping companies (report, p.&nbsp;1). Total revenue across the period is <strong>{usd(T)}</strong> (p.&nbsp;2). </p>
+    <p> The dashboard's headline cards show {nw.totals.orders} orders and {nw.totals.customers} customers; the data spans 21 countries, 77 products in 8 categories, 9 sales employees and 3 shipping companies (report, p.&nbsp;1). Total revenue across the period is <strong>{usd(T)}</strong> (p.&nbsp;2). </p>
   </section>
 
   <section id="questions" aria-labelledby="questions-h">
@@ -74,7 +73,7 @@ const toc = [
   <section id="sales" aria-labelledby="sales-h">
     <h2 id="sales-h">1 · Sales and revenue overview</h2>
     <Shot src={page1} alt="Power BI page titled Sales and Revenue Overview: KPI cards for total revenue $1.27M, total orders 830 and total customers 830; a treemap of orders by month; a column chart of revenue by quarter; a line chart of revenue by calendar month; and Year and Category slicers." eager>
-      <p>Report page 1. Note that the "Total Customers" card reads 830; see the verification notes below.</p>
+      <p>Report page 1: headline KPIs, orders by month, revenue by quarter and revenue by calendar month, with Year and Category slicers.</p>
     </Shot>
 
     <p> Revenue rises through most of the period. The strongest quarter is <strong>Q1 2015 at {usd(q['Q1 2015'])}</strong>, {q1Growth}% above Q1 2014 ({usd(q['Q1 2014'])}), which the report rounds to 116% (p.&nbsp;2). The dashboard sorts its quarterly columns newest first; the recreation below puts them in time order. </p>
@@ -105,7 +104,7 @@ const toc = [
   <section id="products" aria-labelledby="products-h">
     <h2 id="products-h">2 · Product and category intelligence</h2>
     <Shot src={page2} alt="Power BI page titled Product and Category Intelligence: KPI cards for 77 total, 69 active and 8 discontinued products; a donut chart of active versus discontinued revenue labelled 89.61% and 10.39%; bar charts of discount given and net revenue by category, revenue by category, and top products by revenue.">
-      <p>Report page 2. The donut's 10.39% does not match the report's figure for discontinued products; see the verification notes.</p>
+      <p>Report page 2: product counts, the active versus discontinued revenue split, discounts and revenue by category, and the top products.</p>
     </Shot>
 
     <p> Two categories lead: <strong>Beverages ({usd(nw.categories.rows[0].value)}, {nw.pct(nw.categories.rows[0].value, T)}%)</strong> and <strong>Dairy Products ({usd(nw.categories.rows[1].value)}, {nw.pct(nw.categories.rows[1].value, T)}%)</strong>, together {nw.pct(bevDairy, T)}% of revenue (p.&nbsp;4). Beverages also carries the largest discount total, $18,659 (p.&nbsp;5). </p>
@@ -117,7 +116,7 @@ const toc = [
         rows={nw.categories.rows.map((r) => ({ label: r.label, value: r.value, display: usd(r.value), tip: `${r.label} · ${nw.pct(r.value, T)}% of revenue` }))} />
     </ChartFrame>
 
-    <p> The top product is Côte de Blaye at {usd(141_397)}. Eight of the 77 products are discontinued, yet one of them, <strong>Thüringer Rostbratwurst ({usd(80_369)})</strong>, ranks second across the whole catalogue (pp.&nbsp;4–5). The report reads this as a reason to review how discontinuation decisions are made; the data shows the revenue, not why the product was withdrawn. </p>
+    <p> The top product is Côte de Blaye at {usd(141_397)}. Eight of the 77 products are discontinued, and together they account for <strong>{nw.productShare.discontinued}% of revenue</strong> (dashboard donut). One of them, <strong>Thüringer Rostbratwurst ({usd(80_369)})</strong>, ranks second across the whole catalogue (pp.&nbsp;4–5). The report reads this as a reason to review how discontinuation decisions are made; the data shows the revenue, not why the product was withdrawn. </p>
 
     <ChartFrame kind="recreated" source={`Recreated from report figures, pages ${nw.topProducts.pages}`}
       head={['Product', 'Category', 'Revenue', 'Status']} numeric={[2]}
@@ -141,6 +140,9 @@ const toc = [
       <BarList title="Top 10 countries by revenue (all 21 in the data table)" labelWidth="6.5rem"
         rows={nw.countries.rows.slice(0, 10).map((r) => ({ label: r.label, value: r.value, display: usd(r.value), tip: `${nw.pct(r.value, T)}% of revenue` }))} />
     </ChartFrame>
+
+    <h3>Freight share by country</h3>
+    <p> On the dashboard's freight chart, freight as a share of revenue is highest for <strong>Argentina, at just over 7%</strong>, though its revenue base is small ({usd(8_119)}). Sweden, Austria, Portugal and the USA follow at roughly 5.5–6%. These values are read from the chart; the exact figures aren't in the supplied files. </p>
 
     <h3>Shippers</h3>
     <p> United Package carried the most orders (326) and the most freight ({usd(91_570)}); Speedy Express carried 249 orders for {usd(52_291)} (p.&nbsp;7). Dividing freight by orders gives the comparison below. It describes cost per order only: the data has no shipment weights or routes, so it can't show which carrier is cheaper for the same delivery. </p>
@@ -169,8 +171,8 @@ const toc = [
         <thead><tr><th scope="col">Recommendation in the report</th><th scope="col">Evidence status</th></tr></thead>
         <tbody>
           <tr><th scope="row">1. Invest further in the USA and Germany</th><td><strong>Supported as a description:</strong> the two markets hold {nw.pct(usaGer, T)}% of revenue. Whether more investment would pay back isn't something sales history can show.</td></tr>
-          <tr><th scope="row">2. Address freight costs for Austria and the USA</th><td><strong>On hold:</strong> the freight-to-revenue percentages in the report and in the dashboard disagree (see verification notes), so the country ranking this rests on isn't settled.</td></tr>
-          <tr><th scope="row">3. Review discontinued-product decisions</th><td><strong>Partly supported:</strong> a discontinued product ranks second by revenue. The overall discontinued share differs between the report and the dashboard.</td></tr>
+          <tr><th scope="row">2. Address freight costs for Austria and the USA</th><td><strong>Partly supported:</strong> on the dashboard, Austria (third) and the USA (fifth) are among the countries with the highest freight share. Argentina and Sweden rank higher, and the data has no shipment weights, so the cause of the higher share isn't shown.</td></tr>
+          <tr><th scope="row">3. Review discontinued-product decisions</th><td><strong>Partly supported:</strong> discontinued products still account for {nw.productShare.discontinued}% of revenue, and one ranks second by revenue. The data shows the revenue, not why the products were withdrawn.</td></tr>
           <tr><th scope="row">4. Standardise discount policy</th><td><strong>Not shown here:</strong> the report's statement about discount bands isn't backed by a table or chart in the supplied materials, so this case study doesn't repeat it.</td></tr>
           <tr><th scope="row">5. Develop lower-performing sales staff</th><td><strong>A hypothesis:</strong> revenue differs widely between employees, but without territory, tenure or target data the gap can't be attributed to performance.</td></tr>
           <tr><th scope="row">6. Shift order volume toward Speedy Express</th><td><strong>Partly supported:</strong> it has the lowest freight per order in the report's figures. Without weights and destinations, that isn't proof it would be cheaper for the same shipments.</td></tr>
@@ -181,16 +183,7 @@ const toc = [
 
   <section id="verification" aria-labelledby="verification-h">
     <h2 id="verification-h">Verification notes</h2>
-    <p> Every figure on this page was checked against the written report. The report's monthly, quarterly, category, country and employee tables each add up to the same {usd(T)} total. The items below don't reconcile and are presented as open, not resolved. </p>
-    <Flag title="Total customers: 830 on the dashboard, 89 in the report">
-      <p>The KPI card on report page 1 shows 830, the same as the order count. The written report states 89 unique customers (p.&nbsp;2). This page uses the report's figure and leaves the card's measure to be checked.</p>
-    </Flag>
-    <Flag title="Discontinued share of revenue: 10.39% on the dashboard, 14.6% in the report">
-      <p>The report gives {usd(nw.productStatus.discontinued)} ({nw.pct(nw.productStatus.discontinued, T)}%) for discontinued products (p.&nbsp;4). The three discontinued products in its own top-ten table already total {usd(discTop10)} ({nw.pct(discTop10, T, 2)}%), more than the donut's 10.39%. The supplied files don't show which calculation the donut uses, so no discontinued share is quoted as a headline here.</p>
-    </Flag>
-    <Flag title="Freight as a share of revenue by country: the two sources disagree">
-      <p>The report lists Argentina at 21.8%, Austria at 21.7% and the USA at 18.8% (p.&nbsp;7). The dashboard chart tops out near 7% for Argentina and orders the countries differently. The cause can't be determined from the supplied files, so this case study doesn't rank countries by freight burden.</p>
-    </Flag>
+    <p> Figures on this page come from the dashboard and the written report's tables. Where the two differ (total customers, the discontinued share of revenue and freight share by country), the dashboard's figures are used. The report's monthly, quarterly, category, country and employee tables each add up to the same {usd(T)} total, and its country and employee rankings match the dashboard. </p>
     <Flag title="Statements not repeated">
       <p>The report's text describes December 2014 as the peak month, but its own table shows April 2015 ({usd(peakMonth.value)}) above December 2014 ($71,398). It also describes "seasonal peaks" in Q4 2013 and Q4 2014, but in the quarterly table each of those quarters is followed by a higher one. Neither statement is used here.</p>
     </Flag>

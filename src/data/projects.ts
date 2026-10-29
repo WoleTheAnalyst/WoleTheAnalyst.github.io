@@ -33,7 +33,7 @@ export const projects: Project[] = [
     question: 'Where does revenue come from, and which patterns deserve a closer look?',
     disciplines: ['Data & BI', 'Business Analysis'],
     status: 'verified',
-    context: 'Data Analytics Stage 3 task (HNG Internship project files)',
+    context: 'HNG Internship · Data Analytics Stage 3 task',
     tools: ['Power BI', 'DAX', 'Excel'],
     period: 'Data: Jul 2013 – May 2015 · Report: Apr 2026',
     repo: 'https://github.com/WoleTheAnalyst/Northwind-Traders-Business-Intelligence-Report',
