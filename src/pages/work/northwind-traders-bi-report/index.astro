@@ -25,6 +25,9 @@ const bottom3 = nw.employees.rows.slice(-3);
 const bottom3Rev = bottom3.reduce((a, r) => a + r.value, 0);
 const bottom3Orders = bottom3.reduce((a, r) => a + r.orders, 0);
 const perOrder = nw.shippers.rows.map((s) => ({ ...s, per: s.freight / s.orders }));
+const discShare = nw.pct(nw.productStatus.discontinued, T);
+const discCountShare = nw.pct(nw.productStatus.discontinuedCount, nw.productStatus.productCount, 2);
+const usd2 = (v: number) => `$${v.toFixed(2)}`;
 
 const toc = [
   { id: 'overview', label: 'Overview' },
@@ -34,7 +37,7 @@ const toc = [
   { id: 'products', label: 'Products and categories' },
   { id: 'regional', label: 'Regional, operational and people' },
   { id: 'recommendations', label: 'Recommendations' },
-  { id: 'verification', label: 'Verification notes' },
+  { id: 'verification', label: 'Verification against the data model' },
   { id: 'limitations', label: 'Limitations' },
   { id: 'deliverables', label: 'Deliverables' },
 ];
@@ -51,7 +54,7 @@ const toc = [
   <section id="overview" aria-labelledby="overview-h">
     <h2 id="overview-h">Overview</h2>
     <p> Northwind Traders is a fictional gourmet food supplier whose sample database is widely used for analytics practice. This project turns 23 months of its order data (July 2013 to May 2015) into a three-page Power BI report and a written report that explains each page and closes with recommendations. </p>
-    <p> The dashboard's headline cards show {nw.totals.orders} orders and {nw.totals.customers} customers; the data spans 21 countries, 77 products in 8 categories, 9 sales employees and 3 shipping companies (report, p.&nbsp;1). Total revenue across the period is <strong>{usd(T)}</strong> (p.&nbsp;2). </p>
+    <p> The data covers {nw.totals.orders} orders from {nw.totals.customers} customers in 21 countries, placed between {nw.totals.firstOrder} and {nw.totals.lastOrder}, across 77 products in 8 categories, 9 sales employees and 3 shipping companies. Total revenue across the period is <strong>{usd(T)}</strong>. These figures were confirmed against the data model inside the Power BI file. </p>
   </section>
 
   <section id="questions" aria-labelledby="questions-h">
@@ -73,7 +76,7 @@ const toc = [
   <section id="sales" aria-labelledby="sales-h">
     <h2 id="sales-h">1 · Sales and revenue overview</h2>
     <Shot src={page1} alt="Power BI page titled Sales and Revenue Overview: KPI cards for total revenue $1.27M, total orders 830 and total customers 830; a treemap of orders by month; a column chart of revenue by quarter; a line chart of revenue by calendar month; and Year and Category slicers." eager>
-      <p>Report page 1: headline KPIs, orders by month, revenue by quarter and revenue by calendar month, with Year and Category slicers.</p>
+      <p>Report page 1: headline KPIs, orders by month, revenue by quarter and revenue by calendar month, with Year and Category slicers. The "Total Customers" card is bound to a count of customer IDs on the orders table, so it shows the number of orders (830); the data holds 89 distinct customers.</p>
     </Shot>
 
     <p> Revenue rises through most of the period. The strongest quarter is <strong>Q1 2015 at {usd(q['Q1 2015'])}</strong>, {q1Growth}% above Q1 2014 ({usd(q['Q1 2014'])}), which the report rounds to 116% (p.&nbsp;2). The dashboard sorts its quarterly columns newest first; the recreation below puts them in time order. </p>
@@ -88,7 +91,7 @@ const toc = [
       <p slot="caption">Q2 2015 is shown in grey: the data ends in May 2015, so the quarter is incomplete (p.&nbsp;2 labels it "partial") and its lower total is not evidence of a decline.</p>
     </ChartFrame>
 
-    <p> By month, the highest value in the report's monthly table is <strong>{peakMonth.label} at {usd(peakMonth.value)}</strong> (p.&nbsp;3). May 2015 records only {usd(18_334)} because the data stops partway through the month. </p>
+    <p> By month, the highest value in the report's monthly table is <strong>{peakMonth.label} at {usd(peakMonth.value)}</strong> (p.&nbsp;3). May 2015 records only {usd(18_334)} because the data ends on {nw.totals.lastOrder}. </p>
 
     <ChartFrame kind="recreated" source={`Recreated from report figures, pages ${nw.months.pages}`}
       head={['Month', 'Revenue']} numeric={[1]}
@@ -104,7 +107,7 @@ const toc = [
   <section id="products" aria-labelledby="products-h">
     <h2 id="products-h">2 · Product and category intelligence</h2>
     <Shot src={page2} alt="Power BI page titled Product and Category Intelligence: KPI cards for 77 total, 69 active and 8 discontinued products; a donut chart of active versus discontinued revenue labelled 89.61% and 10.39%; bar charts of discount given and net revenue by category, revenue by category, and top products by revenue.">
-      <p>Report page 2: product counts, the active versus discontinued revenue split, discounts and revenue by category, and the top products.</p>
+      <p>Report page 2: product counts, the active versus discontinued donut, discounts and revenue by category, and the top products. The donut is titled "revenue" but is bound to a count of products, so its 10.39% is the share of products that are discontinued (8 of 77), not their share of revenue.</p>
     </Shot>
 
     <p> Two categories lead: <strong>Beverages ({usd(nw.categories.rows[0].value)}, {nw.pct(nw.categories.rows[0].value, T)}%)</strong> and <strong>Dairy Products ({usd(nw.categories.rows[1].value)}, {nw.pct(nw.categories.rows[1].value, T)}%)</strong>, together {nw.pct(bevDairy, T)}% of revenue (p.&nbsp;4). Beverages also carries the largest discount total, $18,659 (p.&nbsp;5). </p>
@@ -116,7 +119,7 @@ const toc = [
         rows={nw.categories.rows.map((r) => ({ label: r.label, value: r.value, display: usd(r.value), tip: `${r.label} · ${nw.pct(r.value, T)}% of revenue` }))} />
     </ChartFrame>
 
-    <p> The top product is Côte de Blaye at {usd(141_397)}. Eight of the 77 products are discontinued, and together they account for <strong>{nw.productShare.discontinued}% of revenue</strong> (dashboard donut). One of them, <strong>Thüringer Rostbratwurst ({usd(80_369)})</strong>, ranks second across the whole catalogue (pp.&nbsp;4–5). The report reads this as a reason to review how discontinuation decisions are made; the data shows the revenue, not why the product was withdrawn. </p>
+    <p> The top product is Côte de Blaye at {usd(141_397)}. Eight of the 77 products ({discCountShare}%) are discontinued, and together they still account for <strong>{usd(nw.productStatus.discontinued)}, {discShare}% of revenue</strong> (p.&nbsp;4, confirmed in the data model). One of them, <strong>Thüringer Rostbratwurst ({usd(80_369)})</strong>, ranks second across the whole catalogue (pp.&nbsp;4–5). The report reads this as a reason to review how discontinuation decisions are made; the data shows the revenue, not why the product was withdrawn. </p>
 
     <ChartFrame kind="recreated" source={`Recreated from report figures, pages ${nw.topProducts.pages}`}
       head={['Product', 'Category', 'Revenue', 'Status']} numeric={[2]}
@@ -129,7 +132,7 @@ const toc = [
   <section id="regional" aria-labelledby="regional-h">
     <h2 id="regional-h">3 · Regional, operational and people intelligence</h2>
     <Shot src={page3} alt="Power BI page titled Regional, Operational and People Intelligence: a column chart of total freight and total orders by shipping company; a column chart of employee sales; a funnel of revenue by country from USA to Poland; and a bar chart of freight as a percentage of revenue by country, led by Argentina at about 7%.">
-      <p>Report page 3. On the shipper chart, order counts share the freight axis, so the order bars are too short to read; the counts below come from the report's table (p.&nbsp;7).</p>
+      <p>Report page 3. On the shipper chart, order counts share the freight axis, so the order bars are too short to read; the counts and freight totals below come from the data model.</p>
     </Shot>
 
     <h3>Markets</h3>
@@ -142,15 +145,21 @@ const toc = [
     </ChartFrame>
 
     <h3>Freight share by country</h3>
-    <p> On the dashboard's freight chart, freight as a share of revenue is highest for <strong>Argentina, at just over 7%</strong>, though its revenue base is small ({usd(8_119)}). Sweden, Austria, Portugal and the USA follow at roughly 5.5–6%. These values are read from the chart; the exact figures aren't in the supplied files. </p>
+    <p> Freight as a share of revenue averages <strong>{nw.freightShare.overall}%</strong> across all orders. It is highest for <strong>Argentina, at {nw.freightShare.rows[0].value}%</strong>, though Argentina's revenue base is small ({usd(8_119)}). Sweden ({nw.freightShare.rows[1].value}%), Austria ({nw.freightShare.rows[2].value}%), Portugal and the USA (both {nw.freightShare.rows[4].value}%) follow. These values come from the dashboard's Freight % of Revenue measure, recalculated from the data model. </p>
+    <ChartFrame kind="calculated" source="Calculated from the Power BI data model (Freight % of Revenue measure)"
+      head={['Country', 'Freight % of revenue']} numeric={[1]}
+      rows={nw.freightShare.rows.map((r) => [r.label, `${r.value.toFixed(2)}%`])}>
+      <BarList title="Freight as a share of revenue, top 10 countries" labelWidth="6.5rem"
+        rows={nw.freightShare.rows.map((r) => ({ label: r.label, value: r.value, display: `${r.value.toFixed(2)}%`, tip: `All-country average ${nw.freightShare.overall}%` }))} />
+    </ChartFrame>
 
     <h3>Shippers</h3>
-    <p> United Package carried the most orders (326) and the most freight ({usd(91_570)}); Speedy Express carried 249 orders for {usd(52_291)} (p.&nbsp;7). Dividing freight by orders gives the comparison below. It describes cost per order only: the data has no shipment weights or routes, so it can't show which carrier is cheaper for the same delivery. </p>
-    <ChartFrame kind="calculated" source="Calculated from report figures, page 7 (freight ÷ orders)"
+    <p> United Package carried the most orders (326) and the most freight ({usd(nw.shippers.rows[0].freight)}); Speedy Express carried 249 orders for {usd(nw.shippers.rows[2].freight)}. Dividing freight by orders gives the comparison below. It describes cost per order only: the data has no shipment weights or routes, so it can't show which carrier is cheaper for the same delivery. </p>
+    <ChartFrame kind="calculated" source="Calculated from the Power BI data model (freight ÷ orders)"
       head={['Shipper', 'Orders', 'Total freight', 'Freight per order']} numeric={[1, 2, 3]}
-      rows={perOrder.map((s) => [s.label, s.orders, usd(s.freight), usd(Math.round(s.per))])}>
+      rows={perOrder.map((s) => [s.label, s.orders, usd(s.freight), usd2(s.per)])}>
       <BarList title="Average freight per order" labelWidth="8.5rem"
-        rows={perOrder.map((s) => ({ label: s.label, value: s.per, display: usd(Math.round(s.per)), tip: `${s.orders} orders · ${usd(s.freight)} freight` }))} />
+        rows={perOrder.map((s) => ({ label: s.label, value: s.per, display: usd2(s.per), tip: `${s.orders} orders · ${usd(s.freight)} freight` }))} />
     </ChartFrame>
 
     <h3>Sales team</h3>
@@ -171,19 +180,31 @@ const toc = [
         <thead><tr><th scope="col">Recommendation in the report</th><th scope="col">Evidence status</th></tr></thead>
         <tbody>
           <tr><th scope="row">1. Invest further in the USA and Germany</th><td><strong>Supported as a description:</strong> the two markets hold {nw.pct(usaGer, T)}% of revenue. Whether more investment would pay back isn't something sales history can show.</td></tr>
-          <tr><th scope="row">2. Address freight costs for Austria and the USA</th><td><strong>Partly supported:</strong> on the dashboard, Austria (third) and the USA (fifth) are among the countries with the highest freight share. Argentina and Sweden rank higher, and the data has no shipment weights, so the cause of the higher share isn't shown.</td></tr>
-          <tr><th scope="row">3. Review discontinued-product decisions</th><td><strong>Partly supported:</strong> discontinued products still account for {nw.productShare.discontinued}% of revenue, and one ranks second by revenue. The data shows the revenue, not why the products were withdrawn.</td></tr>
+          <tr><th scope="row">2. Address freight costs for Austria and the USA</th><td><strong>Partly supported:</strong> Austria ({nw.freightShare.rows[2].value}%, third) and the USA ({nw.freightShare.rows[4].value}%, fifth) are above the {nw.freightShare.overall}% average, though only modestly. Argentina and Sweden rank higher, and the data has no shipment weights, so the reason for the higher share isn't shown.</td></tr>
+          <tr><th scope="row">3. Review discontinued-product decisions</th><td><strong>Partly supported:</strong> discontinued products still account for {discShare}% of revenue, and one ranks second by revenue. The data shows the revenue, not why the products were withdrawn.</td></tr>
           <tr><th scope="row">4. Standardise discount policy</th><td><strong>Not shown here:</strong> the report's statement about discount bands isn't backed by a table or chart in the supplied materials, so this case study doesn't repeat it.</td></tr>
           <tr><th scope="row">5. Develop lower-performing sales staff</th><td><strong>A hypothesis:</strong> revenue differs widely between employees, but without territory, tenure or target data the gap can't be attributed to performance.</td></tr>
-          <tr><th scope="row">6. Shift order volume toward Speedy Express</th><td><strong>Partly supported:</strong> it has the lowest freight per order in the report's figures. Without weights and destinations, that isn't proof it would be cheaper for the same shipments.</td></tr>
+          <tr><th scope="row">6. Shift order volume toward Speedy Express</th><td><strong>Partly supported:</strong> it has the lowest freight per order ({usd2(perOrder[2].per)}) in the data model. Without weights and destinations, that isn't proof it would be cheaper for the same shipments.</td></tr>
         </tbody>
       </table>
     </div>
   </section>
 
   <section id="verification" aria-labelledby="verification-h">
-    <h2 id="verification-h">Verification notes</h2>
-    <p> Figures on this page come from the dashboard and the written report's tables. Where the two differ (total customers, the discontinued share of revenue and freight share by country), the dashboard's figures are used. The report's monthly, quarterly, category, country and employee tables each add up to the same {usd(T)} total, and its country and employee rankings match the dashboard. </p>
+    <h2 id="verification-h">Verification against the data model</h2>
+    <p> The Power BI file contains the full data model, so every figure on this page was recalculated from it, and each visual's field bindings were read from the report layout. </p>
+    <Flag kind="check" title="Revenue figures match the data model exactly">
+      <p>Total revenue, all 8 quarters and 23 months, all 8 categories and their discounts, all 21 countries, and every employee's revenue and order count agree with the written report's tables to the dollar.</p>
+    </Flag>
+    <Flag title="Total customers: 89, not 830">
+      <p>The dashboard's "Total Customers" card is bound to <code>Count(orders[customerID])</code>, which counts every order row that has a customer, so it returns the order count, 830. A distinct count gives 89 customers, the figure the written report states (p.&nbsp;2). This page uses 89.</p>
+    </Flag>
+    <Flag title={`Discontinued share: ${discShare}% of revenue, ${discCountShare}% of products`}>
+      <p>The donut titled "Discontinued vs Active revenue" is bound to <code>Count(products[Product Status])</code>, so its 10.39% is 8 discontinued products out of 77. Measured by revenue, discontinued products account for {usd(nw.productStatus.discontinued)} ({discShare}%), matching the written report (p.&nbsp;4). The three discontinued products in the top ten account for 10.96% of revenue between them; the other five discontinued products make up the rest of the {discShare}%.</p>
+    </Flag>
+    <Flag title="Freight: the dashboard's figures are right, the report's aren't">
+      <p>The dashboard measures freight with <code>SUM(orders[freight])</code>, once per order: {usd(64_943)} in total, {nw.freightShare.overall}% of revenue. The written report's freight figures (shipper totals of $91,570, $63,445 and $52,291; Argentina at 21.8%) equal freight summed once per order <em>line</em>, which counts an order's freight again for every product on it. This page uses the dashboard's measure.</p>
+    </Flag>
     <Flag title="Statements not repeated">
       <p>The report's text describes December 2014 as the peak month, but its own table shows April 2015 ({usd(peakMonth.value)}) above December 2014 ($71,398). It also describes "seasonal peaks" in Q4 2013 and Q4 2014, but in the quarterly table each of those quarters is followed by a higher one. Neither statement is used here.</p>
     </Flag>
@@ -193,7 +214,7 @@ const toc = [
     <h2 id="limitations-h">Limitations</h2>
     <ul>
       <li><strong>Fictional data.</strong> Northwind is a teaching dataset. The patterns are useful for practice; they aren't evidence about any real business.</li>
-      <li><strong>Coverage.</strong> The data runs from July 2013 to part of May 2015, so the first and last quarters aren't comparable with the rest.</li>
+      <li><strong>Coverage.</strong> Orders run from {nw.totals.firstOrder} to {nw.totals.lastOrder}, so Q2 2015 holds barely five weeks and isn't comparable with the other quarters.</li>
       <li><strong>Revenue, not profit.</strong> There are no product costs, so the analysis can't speak to margin; freight is the only cost in the data.</li>
       <li><strong>Descriptive only.</strong> The report describes what happened. It doesn't test causes, so its recommendations are starting points for investigation, not proven actions.</li>
     </ul>

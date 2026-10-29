@@ -1,5 +1,6 @@
-// Figures transcribed from Northwind_Traders_BI_Report.pdf (Northwind-Traders-Business-Intelligence-Report repo).
-// `page` is the PDF page the figure appears on. Every series below sums to the report's $1,265,793 total.
+// Revenue figures transcribed from Northwind_Traders_BI_Report.pdf; `page` is the PDF page they appear on.
+// All of them were re-checked against the data model inside Dashboard.pbix and match it. Freight and customer
+// figures come from the data model, because the report's versions don't match it (see the case study notes).
 
 export const REPORT_PDF =
   'https://github.com/WoleTheAnalyst/Northwind-Traders-Business-Intelligence-Report/blob/main/Northwind_Traders_BI_Report.pdf';
@@ -8,8 +9,9 @@ export const REPO =
 export const LIVE_DASHBOARD =
   'https://app.powerbi.com/view?r=eyJrIjoiMTAyYjg5ZDYtODg0OC00N2JmLWE1NjUtZGU1MmExODljMmMzIiwidCI6IjU2YjNjMjUzLTdlM2MtNDFjNC04NjEwLTc4YjIyYWNjN2E2MCJ9';
 
-// Orders and customers as shown on the dashboard's KPI cards (report page 1 screenshot).
-export const totals = { revenue: 1_265_793, orders: 830, customers: 830, page: 2 };
+// Distinct customers counted in the data model. The dashboard card shows 830 because it is bound to
+// Count(orders[customerID]), which counts order rows rather than distinct customers.
+export const totals = { revenue: 1_265_793, orders: 830, customers: 89, page: 2, firstOrder: '4 July 2013', lastOrder: '6 May 2015' };
 
 export const quarters = {
   page: 2,
@@ -68,8 +70,10 @@ export const categories = {
   ],
 };
 
-// Share of revenue from the dashboard's Discontinued vs Active donut (report page 2 screenshot).
-export const productShare = { active: 89.61, discontinued: 10.39 };
+// Revenue by product status, from the data model (matches report page 4). The dashboard donut titled
+// "Discontinued vs Active revenue" is bound to Count(products[Product Status]): it shows each status's
+// share of the 77 products (8 discontinued = 10.39%), not its share of revenue.
+export const productStatus = { active: 1_080_802, discontinued: 184_991, discontinuedCount: 8, productCount: 77 };
 
 export const topProducts = {
   pages: '4–5',
@@ -114,12 +118,30 @@ export const countries = {
   ],
 };
 
+// Freight from the data model's Total Freight measure, SUM(orders[freight]), which counts each order once.
+// The report's shipper totals ($91,570 / $63,445 / $52,291) equal freight summed once per order *line*.
 export const shippers = {
-  page: 7,
   rows: [
-    { label: 'United Package', orders: 326, freight: 91_570 },
-    { label: 'Federal Shipping', orders: 255, freight: 63_445 },
-    { label: 'Speedy Express', orders: 249, freight: 52_291 },
+    { label: 'United Package', orders: 326, freight: 28_245 },
+    { label: 'Federal Shipping', orders: 255, freight: 20_513 },
+    { label: 'Speedy Express', orders: 249, freight: 16_185 },
+  ],
+};
+
+// Freight % of Revenue by country, from the dashboard measure DIVIDE(SUM(orders[freight]), [Net Revenue]).
+export const freightShare = {
+  overall: 5.13,
+  rows: [
+    { label: 'Argentina', value: 7.37 },
+    { label: 'Sweden', value: 5.94 },
+    { label: 'Austria', value: 5.77 },
+    { label: 'Portugal', value: 5.61 },
+    { label: 'USA', value: 5.61 },
+    { label: 'Ireland', value: 5.51 },
+    { label: 'Italy', value: 5.48 },
+    { label: 'France', value: 5.21 },
+    { label: 'UK', value: 5.01 },
+    { label: 'Poland', value: 4.98 },
   ],
 };
 
