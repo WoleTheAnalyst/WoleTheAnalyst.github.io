@@ -5,6 +5,7 @@ import Source from '../components/Source.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { projects } from '../data/projects';
 import { quarters } from '../data/northwind';
+import { roles, education, RESUME } from '../data/experience';
 import nwShot from '../assets/northwind/page-1-sales-revenue.png';
 import ibmShot from '../assets/ibm/attrition-by-job-role.png';
 
@@ -116,6 +117,26 @@ const EMAIL = 'kolawoleodewusi@gmail.com';
     </div>
   </section>
 
+  <section class="section wrap" id="experience" aria-labelledby="exp-h">
+    <div class="sec-head">
+      <p class="eyebrow">Experience</p>
+      <h2 id="exp-h">Where I've done this work</h2>
+      <p class="muted">Roles in AI evaluation and in data and business analysis, newest first. The <a href={RESUME} type="application/pdf">resume (PDF)</a> has the detail.</p>
+    </div>
+    <ol class="timeline">
+      {roles.map((r) => (
+        <li>
+          <span class="t-when mono">{r.when}</span>
+          <span class="t-role"><strong>{r.title}</strong> <span class="muted">· {r.org}{r.note && ` · ${r.note}`}</span></span>
+          <span class="t-area mono">{r.area}</span>
+        </li>
+      ))}
+    </ol>
+    <p class="edu small muted">
+      <span class="mono">Education</span> {education.map((e, i) => <span>{i > 0 && ' · '}{e.title}, {e.org}{e.when && ` (${e.when.replace(' · ', ', ').replace(/^In/, 'in')})`}</span>)}
+    </p>
+  </section>
+
   <section class="section wrap" id="contact" aria-labelledby="contact-h">
     <div class="contact">
       <div>
@@ -170,6 +191,18 @@ const EMAIL = 'kolawoleodewusi@gmail.com';
   .ev { display: inline-block; font: 500 0.72rem/1.6 var(--font-mono); padding: 0 6px; border: 1px solid var(--rule); border-radius: var(--radius); text-decoration: none; margin-left: 4px; }
   .ev:hover { border-color: var(--cobalt); }
 
+
+  .timeline { list-style: none; padding: 0; margin: 0; max-width: none; border-top: 1px solid var(--ink); }
+  .timeline li { display: grid; grid-template-columns: 11rem minmax(0, 1fr) 13rem; gap: var(--s-5); align-items: baseline; padding: var(--s-4) 0; border-bottom: 1px solid var(--rule); margin: 0; }
+  .t-when { font-size: var(--step--1); color: var(--ink-2); white-space: nowrap; }
+  .t-role strong { font-weight: 600; }
+  .t-area { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cobalt); text-align: right; }
+  .edu { margin-top: var(--s-5); max-width: none; }
+  .edu .mono { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.72rem; margin-right: var(--s-2); }
+  @media (max-width: 860px) {
+    .timeline li { grid-template-columns: 1fr; gap: 2px; }
+    .t-area { text-align: left; }
+  }
   .contact { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--s-7); align-items: end; }
   .contact h2 { max-width: 18ch; }
   .mail { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; font-size: var(--step-1); margin: 0; }
