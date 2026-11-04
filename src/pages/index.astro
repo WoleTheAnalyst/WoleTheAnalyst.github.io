@@ -8,9 +8,10 @@ import { quarters } from '../data/northwind';
 import { roles, education, RESUME } from '../data/experience';
 import nwShot from '../assets/northwind/page-1-sales-revenue.png';
 import ibmShot from '../assets/ibm/attrition-by-job-role.png';
+import pbErd from '../assets/palladium/schema-diagram.png';
 
 const usd = (v: number) => `$${v.toLocaleString('en-US')}`;
-const images = { 'northwind-traders-bi-report': nwShot, 'ibm-employee-attrition': ibmShot } as const;
+const images = { 'palladium-bank-data-warehouse': pbErd, 'northwind-traders-bi-report': nwShot, 'ibm-employee-attrition': ibmShot } as const;
 const EMAIL = 'kolawoleodewusi@gmail.com';
 ---
 <Base title="Kolawole Odewusi" description="Kolawole Odewusi is a Business Analyst and AI Evaluation Specialist in Lagos, Nigeria. Case studies in business intelligence and analysis, with every figure checked against its source.">
@@ -95,7 +96,8 @@ const EMAIL = 'kolawoleodewusi@gmail.com';
       <div>
         <h3>Business analysis</h3>
         <ul>
-          <li>Turning a broad brief into specific business questions <a class="ev" href="/work/northwind-traders-bi-report/#questions">Northwind</a></li>
+          <li>Tracing design decisions back to reporting requirements <a class="ev" href="/work/palladium-bank-data-warehouse/#decisions">Palladium</a></li>
+          <li>Turning a broad brief into specific business questions <a class="ev" href="/work/palladium-bank-data-warehouse/#questions">Palladium</a> <a class="ev" href="/work/northwind-traders-bi-report/#questions">Northwind</a></li>
           <li>Recommendations with stated evidence and limits <a class="ev" href="/work/northwind-traders-bi-report/#recommendations">Northwind</a></li>
         </ul>
       </div>
@@ -103,6 +105,7 @@ const EMAIL = 'kolawoleodewusi@gmail.com';
         <h3>Data and business intelligence</h3>
         <ul>
           <li>Power BI reports and DAX measures <a class="ev" href="/work/northwind-traders-bi-report/">Northwind</a> <a class="ev" href="/work/ibm-employee-attrition/#method">IBM</a></li>
+          <li>SQL data modelling: star schema, ETL and an aggregation layer <a class="ev" href="/work/palladium-bank-data-warehouse/#model">Palladium</a></li>
           <li>Excel for exploration and data cleaning <a class="ev" href="/work/ibm-employee-attrition/#method">IBM</a></li>
           <li>Group comparisons using rates, counts and denominators <a class="ev" href="/work/ibm-employee-attrition/#groups">IBM</a></li>
         </ul>
@@ -110,6 +113,7 @@ const EMAIL = 'kolawoleodewusi@gmail.com';
       <div>
         <h3>Quality and verification</h3>
         <ul>
+          <li>Data-quality checks for duplicates, missing values and orphaned records <a class="ev" href="/work/palladium-bank-data-warehouse/#quality">Palladium</a></li>
           <li>Reconciling reported figures with source data <a class="ev" href="/work/ibm-employee-attrition/#verification">IBM</a> <a class="ev" href="/work/northwind-traders-bi-report/#verification">Northwind</a></li>
           <li>Documenting discrepancies without guessing their cause <a class="ev" href="/work/northwind-traders-bi-report/#verification">Northwind</a></li>
         </ul>
