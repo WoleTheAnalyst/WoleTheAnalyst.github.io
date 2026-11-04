@@ -1,0 +1,203 @@
+---
+import CaseStudy from '../../../layouts/CaseStudy.astro';
+import Shot from '../../../components/Shot.astro';
+import Flag from '../../../components/Flag.astro';
+import { projects } from '../../../data/projects';
+import * as pb from '../../../data/palladium';
+import erd from '../../../assets/palladium/schema-diagram.png';
+
+const project = projects.find((p) => p.slug === 'palladium-bank-data-warehouse')!;
+const toc = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'questions', label: 'Business questions' },
+  { id: 'decisions', label: 'Requirements to design' },
+  { id: 'model', label: 'The model' },
+  { id: 'etl', label: 'ETL pipeline' },
+  { id: 'quality', label: 'Data-quality checks' },
+  { id: 'reporting', label: 'Reporting layer' },
+  { id: 'verification', label: 'Test run' },
+  { id: 'limitations', label: 'Limitations and next steps' },
+  { id: 'deliverables', label: 'Deliverables' },
+];
+---
+<CaseStudy
+  project={project}
+  description="Case study: a MySQL star-schema data warehouse for a fictional retail bank, tracing each design decision back to a reporting requirement, with ETL, data-quality checks and a monthly reporting layer."
+  toc={toc}
+  facts={[
+    { term: 'Deliverables', detail: 'Schema and ETL script (SQL) · star-schema diagram · design write-up' },
+    { term: 'Author', detail: 'Kolawole Odewusi' },
+  ]}
+>
+  <section id="overview" aria-labelledby="overview-h">
+    <h2 id="overview-h">Overview</h2>
+    <p> Palladium Bank is a fictional retail bank with 18 months of transaction data held in a single flat file of 15 columns. Running reports directly on that file was slow and inconsistent, because every query had to scan every row and column. </p>
+    <p> The task was to design a dimensional model that makes reporting fast and consistent, then build it in MySQL: the schema, an ETL pipeline from the raw file, data-quality checks, performance indexes and a pre-aggregated table for dashboards. The design write-up explains each decision in plain language for a non-technical reader. </p>
+  </section>
+
+  <section id="questions" aria-labelledby="questions-h">
+    <h2 id="questions-h">Business questions the model had to answer</h2>
+    <p>The design starts from the questions the bank needs to answer, not from the data:</p>
+    <ul>{pb.questions.map((q) => <li>{q}</li>)}</ul>
+  </section>
+
+  <section id="decisions" aria-labelledby="decisions-h">
+    <h2 id="decisions-h">From requirement to design decision</h2>
+    <p>Each structural choice traces back to a reporting need. This is the reasoning set out in the design write-up.</p>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Requirement to design decision table">
+      <table class="decisions">
+        <thead><tr><th scope="col">Need</th><th scope="col">Decision</th><th scope="col">Why</th></tr></thead>
+        <tbody>
+          {pb.decisions.map((d) => (
+            <tr>
+              <td>{d.need}</td>
+              <th scope="row">{d.decision}{d.caveat && <span class="note mono"> see limitations</span>}</th>
+              <td>{d.why}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="model" aria-labelledby="model-h">
+    <h2 id="model-h">The model</h2>
+    <p> One fact table at transaction grain, five dimensions around it. Hover over or tab to a dimension to see the key it joins on and the question it answers. Tables and columns are shown as the SQL creates them. </p>
+
+    <div class="schema" role="group" aria-label="Star schema as built in the SQL">
+      <div class="dims">
+        {pb.dims.map((d) => (
+          <div class:list={['tbl', 'dim', `dim-${d.id}`]} tabindex="0" aria-describedby={`en-${d.id}`}>
+            <p class="tname mono">{d.name}</p>
+            <ul>{d.cols.map((c, i) => <li class:list={[{ pk: i === 0 }]}>{c}</li>)}</ul>
+            <p class="enables" id={`en-${d.id}`}><span class="mono">Answers</span> {d.enables}</p>
+          </div>
+        ))}
+      </div>
+      <div class="tbl fact">
+        <p class="tname mono">{pb.fact.name}</p>
+        <ul>
+          <li class="pk">transaction_key</li>
+          {pb.fact.keys.map((k) => <li class:list={['fk', `fk-${k.dim}`]}>{k.col} <span class="arrow" aria-hidden="true">→ dim_{k.dim}</span></li>)}
+          {pb.fact.measures.map((m) => <li>{m}</li>)}
+        </ul>
+      </div>
+    </div>
+
+    <Shot src={erd} alt="Entity relationship diagram from dbdiagram.io: fact_transactions linked to dim_date, dim_customer, dim_branch, dim_product and dim_channel. The diagram's dim_customer includes effective_date, expiry_date and is_current columns, and the fact table lists txn_amount." source="Original schema diagram (dbdiagram.io)">
+      <p>The project's diagram. It shows the customer dimension with its planned SCD Type 2 columns (effective date, expiry date, current flag) and names the amount column <code>txn_amount</code>. The SQL as built uses <code>amount</code> and doesn't yet include the SCD Type 2 columns; see limitations.</p>
+    </Shot>
+  </section>
+
+  <section id="etl" aria-labelledby="etl-h">
+    <h2 id="etl-h">ETL pipeline</h2>
+    <p>The script loads the warehouse in this order:</p>
+    <ol class="steps">
+      {pb.etl.map((e) => <li><strong>{e.step}.</strong> <span set:html={e.detail.replace(/`([^`]+)`/g, '<code>$1</code>')} /></li>)}
+    </ol>
+    <details class="data">
+      <summary>View the fact-table load (SQL)</summary>
+      <pre><code>{pb.sql.fact}</code></pre>
+    </details>
+    <p class="small muted">The incremental guard is the <code>WHERE … NOT IN</code> line: re-running the load doesn't duplicate transactions already in the fact table.</p>
+  </section>
+
+  <section id="quality" aria-labelledby="quality-h">
+    <h2 id="quality-h">Data-quality checks</h2>
+    <p>Four checks target the errors most likely to distort a bank's figures without anyone noticing:</p>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Data-quality checks table">
+      <table class="checks">
+        <thead><tr><th scope="col">Check</th><th scope="col">What it catches</th><th scope="col">Query</th></tr></thead>
+        <tbody>
+          {pb.checks.map((c) => (
+            <tr><th scope="row">{c.name}</th><td>{c.catches}</td><td><pre><code>{c.sql}</code></pre></td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted">The repository contains the queries but not their results on the original data, so no counts are shown here.</p>
+  </section>
+
+  <section id="reporting" aria-labelledby="reporting-h">
+    <h2 id="reporting-h">Reporting layer</h2>
+    <p> Dashboards read from <code>agg_monthly_branch_revenue</code>, one row per branch per month, instead of summing the full fact table on every refresh. </p>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Reporting table columns">
+      <table>
+        <thead><tr><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>{pb.aggColumns.map(([c, m]) => <tr><th scope="row"><code>{c}</code></th><td>{m}</td></tr>)}</tbody>
+      </table>
+    </div>
+    <details class="data">
+      <summary>View the aggregation query (SQL)</summary>
+      <pre><code>{pb.sql.agg}</code></pre>
+    </details>
+  </section>
+
+  <section id="verification" aria-labelledby="verification-h">
+    <h2 id="verification-h">Test run</h2>
+    <p> The original transaction file isn't in the repository, so the warehouse can't be rebuilt with real data. For this case study, the unchanged script was run against an empty copy of the staging table's structure, plus three made-up rows to exercise the logic. No figures from those rows are presented as results. </p>
+    <Flag kind="check" title="The pipeline logic works as designed">
+      <p>On MariaDB 10.11, configured like a default Windows MySQL 8 install (case-insensitive table names, inline foreign keys not enforced), the script ran from start to finish. After both fact-table inserts there were three rows for three transactions, so the duplicate guard held. Every fact row matched a date in the date dimension, and the monthly table split deposits from withdrawals (including ATM withdrawals) as defined.</p>
+    </Flag>
+    <Flag title="Two portability issues on stricter database settings">
+      <p>On a server with case-sensitive table names, one load step fails, because it refers to the staging table as <code>transaction_data - sheet1</code> (lowercase "s"). On engines that enforce foreign keys written inside column definitions, the fact table isn't created, because its <code>INT</code> key columns point at <code>SERIAL</code> keys, which are <code>BIGINT UNSIGNED</code>. MySQL 8 ignores those inline foreign keys, which is why the script runs there.</p>
+    </Flag>
+  </section>
+
+  <section id="limitations" aria-labelledby="limitations-h">
+    <h2 id="limitations-h">Limitations and next steps</h2>
+    <ul>
+      <li><strong>SCD Type 2 is designed, not yet built.</strong> The design calls for SCD Type 2 history on customer tier (effective date, expiry date, current flag), as shown in the diagram. The submitted SQL loads the customer dimension without these columns, so tier changes aren't yet tracked over time. That is the next iteration.</li>
+      <li><strong>Referential integrity relies on load order.</strong> Because the inline foreign keys aren't enforced in MySQL 8, nothing in the database stops a fact row pointing at a missing dimension row; the orphan check is the safeguard. Declaring the keys as table-level constraints, with matching column types, would let the database enforce them.</li>
+      <li><strong>Checks report problems; they don't block the load.</strong> The four data-quality queries are run on their own. A production pipeline would stop or quarantine bad rows before loading them.</li>
+      <li><strong>Partitioning deferred.</strong> Partitioning by year was set aside because it conflicted with the unique transaction-ID index; it's the recommended next step for millions of rows.</li>
+      <li><strong>No dashboard yet.</strong> The project ends at the reporting table; a Power BI layer on top of it is a natural follow-on.</li>
+    </ul>
+  </section>
+
+  <section id="deliverables" aria-labelledby="deliverables-h">
+    <h2 id="deliverables-h">Deliverables</h2>
+    <ul class="deliv">
+      <li><a href={pb.SQL_FILE}>Schema, ETL, checks and aggregation script</a> <span class="mono small muted">SQL</span></li>
+      <li><a href={pb.REPO}>Repository with the README and schema diagram</a> <span class="mono small muted">GitHub</span></li>
+    </ul>
+  </section>
+</CaseStudy>
+
+<style>
+  .decisions td, .decisions th { font-size: var(--step--1); }
+  .decisions th[scope='row'] { font-weight: 600; color: var(--ink); width: 32%; }
+  .decisions td { color: var(--ink-2); }
+  .note { font-size: 0.7rem; color: var(--cobalt); font-weight: 500; white-space: nowrap; }
+  .checks pre { margin: 0; font-size: 0.75rem; white-space: pre; }
+  .checks th[scope='row'] { white-space: nowrap; }
+  .steps li { margin-bottom: var(--s-2); }
+  .deliv { list-style: none; padding: 0; }
+  .deliv li { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: baseline; padding: var(--s-3) 0; border-bottom: 1px solid var(--rule); margin: 0; }
+
+  .schema { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: var(--s-5); align-items: start; margin: var(--s-6) 0; }
+  .dims { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); }
+  .tbl { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper); padding: var(--s-3) var(--s-4); font-size: 0.8rem; }
+  .tbl ul { list-style: none; padding: 0; margin: 0; max-width: none; font-family: var(--font-mono); }
+  .tbl li { margin: 0; padding: 3px 6px; border-radius: var(--radius); color: var(--ink-2); }
+  .tbl li.pk { color: var(--ink); font-weight: 500; }
+  .tname { font-weight: 500; color: var(--ink); margin: 0 0 var(--s-2); padding-bottom: var(--s-2); border-bottom: 1px solid var(--rule); }
+  .fact { position: sticky; top: 96px; border-color: var(--ink); border-width: 2px; }
+  .fact .tname { color: var(--cobalt); }
+  .arrow { color: var(--ink-3); }
+  .dim { cursor: default; transition: border-color .15s ease; }
+  .enables { margin: var(--s-3) 0 0; font-size: 0.78rem; color: var(--ink-2); }
+  .enables .mono { display: block; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--cobalt); }
+  .dim:hover, .dim:focus-visible { border-color: var(--cobalt-mark); outline: none; box-shadow: 0 0 0 1px var(--cobalt-mark); }
+  .schema:has(.dim-date:is(:hover, :focus-visible)) .fk-date,
+  .schema:has(.dim-customer:is(:hover, :focus-visible)) .fk-customer,
+  .schema:has(.dim-branch:is(:hover, :focus-visible)) .fk-branch,
+  .schema:has(.dim-product:is(:hover, :focus-visible)) .fk-product,
+  .schema:has(.dim-channel:is(:hover, :focus-visible)) .fk-channel { background: var(--cobalt-tint); color: var(--ink); }
+  .schema:has(.dim:is(:hover, :focus-visible)) .fk .arrow { color: var(--ink-2); }
+  @media (max-width: 760px) {
+    .schema { grid-template-columns: 1fr; }
+    .fact { position: static; order: -1; }
+    .dims { grid-template-columns: 1fr; }
+  }
+</style>
