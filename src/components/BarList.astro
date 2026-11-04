@@ -1,0 +1,50 @@
+---
+// Horizontal single-series bar chart rendered as an HTML list, so labels and values stay
+// readable text for assistive tech. Values sit at the bar tip; one hue, no legend.
+interface Row { label: string; value: number; display: string; tip?: string; muted?: boolean; note?: string }
+interface Props { rows: Row[]; max?: number; title: string; labelWidth?: string }
+
+const { rows, title, labelWidth = '12rem' } = Astro.props;
+const max = Astro.props.max ?? Math.max(...rows.map((r) => r.value));
+---
+<div class="barlist" style={`--label-w:${labelWidth}`}>
+  <p class="barlist__title">{title}</p>
+  <ul role="list">
+    {rows.map((r) => (
+      <li class:list={[{ muted: r.muted }]}>
+        <span class="lbl">{r.label}{r.note && <span class="note mono"> {r.note}</span>}</span>
+        <span class="track">
+          <span
+            class="bar"
+            style={`--w:${Math.max(0.5, (r.value / max) * 100)}%`}
+            data-tip={r.tip ? `${r.display}|${r.tip}` : undefined}
+            tabindex={r.tip ? 0 : undefined}
+          ></span>
+          <span class="val">{r.display}</span>
+        </span>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .barlist { margin: var(--s-4) 0; }
+  .barlist__title { font: 600 var(--step--1)/1.4 var(--font-sans); color: var(--ink); margin-bottom: var(--s-3); }
+  ul { list-style: none; padding: 0; margin: 0; max-width: none; }
+  li { display: grid; grid-template-columns: var(--label-w) 1fr; gap: var(--s-3); align-items: center; min-height: 32px; margin: 0; }
+  li + li { margin-top: 2px; }
+  .lbl { font-size: var(--step--1); color: var(--ink); line-height: 1.25; }
+  .note { font-size: 0.72rem; color: var(--ink-2); }
+  .track { display: flex; align-items: center; gap: var(--s-2); min-width: 0; }
+  .bar {
+    display: block; height: 16px; width: var(--w); background: var(--cobalt-mark);
+    border-radius: 0 4px 4px 0; flex: 0 0 auto; max-width: calc(100% - 5.5rem);
+  }
+  .bar[data-tip] { cursor: default; }
+  .bar[data-tip]:hover, .bar[data-tip]:focus-visible { filter: brightness(1.15); }
+  .muted .bar { background: var(--muted-mark); }
+  .val { font: 500 var(--step--1)/1 var(--font-mono); color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  @media (max-width: 560px) {
+    li { grid-template-columns: 1fr; gap: 2px; padding-bottom: var(--s-2); }
+  }
+</style>

@@ -1,0 +1,51 @@
+---
+import Base from '../../layouts/Base.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import { projects } from '../../data/projects';
+---
+<Base title="Work" description="Case studies by Kolawole Odewusi in business intelligence and business analysis, each with its context, data source and verification notes.">
+  <section class="wrap head">
+    <p class="eyebrow">Work</p>
+    <h1>Case studies</h1>
+    <p class="lede">Each project page states what kind of work it was, where the data came from, and which figures were checked against source.</p>
+  </section>
+  <section class="wrap" aria-label="Projects">
+    <ol class="list">
+      {projects.map((p, i) => (
+        <li>
+          <span class="idx mono">{String(i + 1).padStart(2, '0')}</span>
+          <div class="main">
+            <h2><a href={`/work/${p.slug}/`}>{p.title}</a></h2>
+            <p class="muted">{p.summary}</p>
+          </div>
+          <dl class="side small">
+            <div><dt>Status</dt><dd><StatusBadge status={p.status} /></dd></div>
+            <div><dt>Discipline</dt><dd>{p.disciplines.join(' · ')}</dd></div>
+            <div><dt>Tools</dt><dd>{p.tools.join(', ')}</dd></div>
+            <div><dt>Context</dt><dd>{p.context}</dd></div>
+          </dl>
+        </li>
+      ))}
+    </ol>
+    <p class="more"><a href="https://github.com/WoleTheAnalyst">More projects on GitHub →</a></p>
+  </section>
+</Base>
+
+<style>
+  .head { padding-block: var(--s-8) var(--s-6); }
+  .list { list-style: none; padding: 0; margin: 0; max-width: none; border-top: 1px solid var(--ink); }
+  .list li { display: grid; grid-template-columns: 3rem minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--s-6); padding-block: var(--s-6); border-bottom: 1px solid var(--rule); margin: 0; position: relative; }
+  .idx { color: var(--cobalt); padding-top: 0.5rem; }
+  h2 { font-size: var(--step-2); margin-bottom: var(--s-3); }
+  h2 a { color: var(--ink); text-decoration: none; }
+  h2 a::after { content: ''; position: absolute; inset: 0; }
+  h2 a:hover { color: var(--cobalt); }
+  .list li:has(h2 a:focus-visible) { outline: 2px solid var(--focus); outline-offset: 4px; }
+  h2 a:focus-visible { outline: none; }
+  .side { display: grid; gap: var(--s-2); margin: 0; }
+  .side div { display: grid; grid-template-columns: 6.5rem 1fr; gap: var(--s-2); }
+  .side dt { font: 500 0.72rem/1.6 var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); }
+  .side dd { margin: 0; }
+  .more { margin-block: var(--s-6) var(--s-9); }
+  @media (max-width: 860px) { .list li { grid-template-columns: 2.5rem minmax(0, 1fr); } .side { grid-column: 2; } }
+</style>

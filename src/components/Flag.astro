@@ -1,0 +1,19 @@
+---
+// A verification note: something in the evidence that does not reconcile, or a claim
+// that is deliberately not repeated. Glyph + heading, never colour alone.
+interface Props { title: string; kind?: 'flag' | 'check' }
+const { title, kind = 'flag' } = Astro.props;
+---
+<div role="note" class:list={['flag', kind]} aria-label={`${kind === 'flag' ? 'Verification note' : 'Checked'}: ${title}`}>
+  <p class="flag__head"><span class="glyph" aria-hidden="true">{kind === 'flag' ? '⚑' : '✓'}</span> {title}</p>
+  <div class="flag__body"><slot /></div>
+</div>
+
+<style>
+  .flag { border-left: 2px solid var(--ink); padding: var(--s-1) 0 var(--s-1) var(--s-4); margin: var(--s-5) 0; max-width: var(--measure); }
+  .check { border-left-color: var(--cobalt-mark); }
+  .flag__head { font: 600 var(--step--1)/1.4 var(--font-sans); margin: 0 0 var(--s-2); }
+  .glyph { font-family: var(--font-mono); color: var(--cobalt); margin-right: 0.2em; }
+  .flag__body { font-size: var(--step--1); color: var(--ink-2); }
+  .flag__body :global(p:last-child) { margin-bottom: 0; }
+</style>

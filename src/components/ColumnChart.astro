@@ -1,0 +1,74 @@
+---
+// Vertical single-series column chart (SVG, build-time). Partial periods render in the
+// de-emphasis hue. Selected columns can carry a direct label; every column has a tooltip.
+interface Row { label: string; value: number; partial?: boolean }
+interface Props {
+  rows: Row[];
+  title: string;
+  desc: string;
+  format: (v: number) => string;
+  labelled?: string[];
+  highlight?: string[];
+  ticks?: number[];
+  id: string;
+}
+
+const { rows, title, desc, format, labelled = [], highlight = [], id } = Astro.props;
+const W = 640, H = 300, padL = 52, padR = 8, padT = 28, padB = 36;
+const max = Math.max(...rows.map((r) => r.value));
+const ticks = Astro.props.ticks ?? [0, max / 2, max];
+const top = Math.max(max, ...ticks);
+const innerW = W - padL - padR, innerH = H - padT - padB;
+const band = innerW / rows.length;
+const barW = Math.min(24, band * 0.5);
+const y = (v: number) => padT + innerH - (v / top) * innerH;
+const r = 4;
+const colPath = (x: number, v: number) => {
+  const yt = y(v), yb = padT + innerH, h = yb - yt, rr = Math.min(r, h);
+  return `M${x},${yb} V${yt + rr} Q${x},${yt} ${x + rr},${yt} H${x + barW - rr} Q${x + barW},${yt} ${x + barW},${yt + rr} V${yb} Z`;
+};
+const compact = (v: number) => (v === 0 ? '0' : `$${Math.round(v / 1000)}K`);
+---
+<figure class="colchart">
+  <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-labelledby={`${id}-t ${id}-d`}>
+    <title id={`${id}-t`}>{title}</title>
+    <desc id={`${id}-d`}>{desc}</desc>
+    {ticks.map((t) => (
+      <g class="grid">
+        <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} />
+        <text x={padL - 8} y={y(t)} dy="0.32em" text-anchor="end">{compact(t)}</text>
+      </g>
+    ))}
+    {rows.map((row, i) => {
+      const x = padL + band * i + (band - barW) / 2;
+      const cls = row.partial ? 'col partial' : highlight.includes(row.label) ? 'col hi' : 'col';
+      return (
+        <g>
+          <rect class="hit" x={padL + band * i} y={padT} width={band} height={innerH}
+            role="img" tabindex="0" data-tip={`${format(row.value)}|${row.label}${row.partial ? ' (partial)' : ''}`}
+            aria-label={`${row.label}${row.partial ? ' (partial)' : ''}: ${format(row.value)}`} />
+          <path class={cls} d={colPath(x, row.value)} />
+          {labelled.includes(row.label) && (
+            <text class="dl" x={x + barW / 2} y={y(row.value) - 8} text-anchor="middle">{format(row.value)}</text>
+          )}
+          <text class="xl" x={x + barW / 2} y={H - padB + 18} text-anchor="middle">{row.label}</text>
+        </g>
+      );
+    })}
+  </svg>
+</figure>
+
+<style>
+  .colchart { margin: 0; }
+  svg { width: 100%; height: auto; display: block; overflow: visible; font-family: var(--font-mono); }
+  .grid line { stroke: var(--rule); stroke-width: 1; }
+  .grid text, .xl { fill: var(--ink-2); font-size: 11px; }
+  .dl { fill: var(--ink); font-size: 12px; font-weight: 500; }
+  .col { fill: var(--cobalt-mark); pointer-events: none; }
+  .dl, .xl { pointer-events: none; }
+  .col.partial { fill: var(--muted-mark); }
+  .hit { fill: transparent; outline: none; }
+  .hit:hover + .col, .hit:focus-visible + .col { filter: brightness(1.18); }
+  .hit:focus-visible { stroke: var(--focus); stroke-width: 2; }
+  @media (max-width: 560px) { .xl { font-size: 10px; } }
+</style>

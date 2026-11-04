@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Page not found" description="The page you were looking for doesn't exist on this site.">
+  <section class="wrap nf">
+    <p class="eyebrow">404 · Not found</p>
+    <h1>This page isn't in the evidence.</h1>
+    <p class="lede">The address may be from the previous version of the site, or it may have a typo.</p>
+    <p><a class="btn btn--primary" href="/">Go to the home page</a> <a class="btn" href="/work/">See the case studies</a></p>
+  </section>
+</Base>
+
+<style>
+  .nf { padding-block: var(--s-10); }
+  .nf h1 { max-width: 16ch; }
+  .nf .btn { margin: var(--s-2) var(--s-2) 0 0; }
+</style>

@@ -1,0 +1,22 @@
+---
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="wrap foot">
+    <p class="small muted">© {year} Kolawole Odewusi · Lagos, Nigeria</p>
+    <ul class="links small">
+      <li><a href="https://github.com/WoleTheAnalyst">GitHub</a></li>
+      <li><a href="mailto:kolawoleodewusi@gmail.com">Email</a></li>
+      <li><a href="#main" data-back-to-top>Back to top ↑</a></li>
+    </ul>
+  </div>
+</footer>
+
+<style>
+  .site-footer { border-top: 1px solid var(--rule); padding-block: var(--s-6); }
+  .foot { display: flex; flex-wrap: wrap; gap: var(--s-4); justify-content: space-between; align-items: center; }
+  .foot p { margin: 0; }
+  .links { display: flex; gap: var(--s-5); list-style: none; padding: 0; margin: 0; }
+  .links li + li { margin: 0; }
+  .links a { display: inline-flex; align-items: center; min-height: 44px; }
+</style>

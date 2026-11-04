@@ -1,0 +1,63 @@
+---
+// Single-series line chart (SVG, build-time). A partial final point is drawn as a hollow
+// marker joined by a lighter segment. Points are focusable and show a tooltip.
+interface Row { label: string; value: number; partial?: boolean }
+interface Props { rows: Row[]; title: string; desc: string; format: (v: number) => string; labelled?: string[]; ticks: number[]; xEvery?: number; id: string }
+
+const { rows, title, desc, format, labelled = [], ticks, xEvery = 3, id } = Astro.props;
+const W = 640, H = 280, padL = 52, padR = 16, padT = 28, padB = 36;
+const top = Math.max(...ticks, ...rows.map((r) => r.value));
+const innerW = W - padL - padR, innerH = H - padT - padB;
+const x = (i: number) => padL + (innerW * i) / (rows.length - 1);
+const y = (v: number) => padT + innerH - (v / top) * innerH;
+const full = rows.filter((r) => !r.partial);
+const line = full.map((r, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(r.value).toFixed(1)}`).join(' ');
+const lastFull = full.length - 1;
+const partialIdx = rows.findIndex((r) => r.partial);
+const compact = (v: number) => (v === 0 ? '0' : `$${Math.round(v / 1000)}K`);
+---
+<figure class="linechart">
+  <svg viewBox={`0 0 ${W} ${H}`} role="group" aria-labelledby={`${id}-t ${id}-d`}>
+    <title id={`${id}-t`}>{title}</title>
+    <desc id={`${id}-d`}>{desc}</desc>
+    {ticks.map((t) => (
+      <g class="grid">
+        <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} />
+        <text x={padL - 8} y={y(t)} dy="0.32em" text-anchor="end">{compact(t)}</text>
+      </g>
+    ))}
+    <path class="line" d={line} />
+    {partialIdx > 0 && (
+      <path class="line partial" d={`M${x(lastFull)},${y(rows[lastFull].value)} L${x(partialIdx)},${y(rows[partialIdx].value)}`} />
+    )}
+    {rows.map((r, i) => (
+      <g>
+        {i % xEvery === 0 && <text class="xl" x={x(i)} y={H - padB + 18} text-anchor="middle">{r.label}</text>}
+        <circle class:list={['dot', { partial: r.partial, on: labelled.includes(r.label) }]} cx={x(i)} cy={y(r.value)} r="4" />
+        <circle class="hit" cx={x(i)} cy={y(r.value)} r="12" role="img" tabindex="0"
+          data-tip={`${format(r.value)}|${r.label}${r.partial ? ' (partial month)' : ''}`}
+          aria-label={`${r.label}${r.partial ? ' (partial month)' : ''}: ${format(r.value)}`} />
+        {labelled.includes(r.label) && (
+          <text class="dl" x={x(i)} y={y(r.value) - 12} text-anchor={i > rows.length - 4 ? 'end' : 'middle'}>{format(r.value)} · {r.label}</text>
+        )}
+      </g>
+    ))}
+  </svg>
+</figure>
+
+<style>
+  .linechart { margin: 0; }
+  svg { width: 100%; height: auto; display: block; overflow: visible; font-family: var(--font-mono); }
+  .grid line { stroke: var(--rule); stroke-width: 1; }
+  .grid text, .xl { fill: var(--ink-2); font-size: 11px; }
+  .dl { fill: var(--ink); font-size: 12px; font-weight: 500; }
+  .line { fill: none; stroke: var(--cobalt-mark); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .line.partial { stroke: var(--muted-mark); stroke-dasharray: none; }
+  .dot { fill: transparent; pointer-events: none; }
+  .dl, .xl, .line { pointer-events: none; }
+  .dot.on { fill: var(--cobalt-mark); stroke: var(--paper); stroke-width: 2; }
+  .dot.partial { fill: var(--paper); stroke: var(--muted-mark); stroke-width: 2; }
+  .hit { fill: transparent; outline: none; }
+  .hit:hover, .hit:focus-visible { fill: color-mix(in srgb, var(--cobalt-mark) 18%, transparent); }
+  .hit:focus-visible { stroke: var(--focus); stroke-width: 2; }
+</style>
