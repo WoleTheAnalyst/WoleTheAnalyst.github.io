@@ -65,3 +65,16 @@ export const projects: Project[] = [
     repo: 'https://github.com/WoleTheAnalyst/IBM-Employee-Attrition-Analysis',
   },
 ];
+
+// Projects highlighted with a link to their repository, without a full case study.
+export type RepoProject = { title: string; summary: string; tools: string[]; repo: string };
+
+export const repoProjects: RepoProject[] = [
+  {
+    title: 'Call Center Analysis',
+    summary:
+      'SQL and Power BI analysis of 500 call records: call volumes, issue types, call durations, resolution status and customer satisfaction, with a written report and a short- and long-term improvement plan.',
+    tools: ['SQL (MySQL)', 'Power BI', 'Word'],
+    repo: 'https://github.com/WoleTheAnalyst/Call-Center-Analysis',
+  },
+];

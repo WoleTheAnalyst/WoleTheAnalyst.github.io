@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import ColumnChart from '../components/ColumnChart.astro';
 import Source from '../components/Source.astro';
 import ProjectCard from '../components/ProjectCard.astro';
-import { projects } from '../data/projects';
+import { projects, repoProjects } from '../data/projects';
 import { quarters } from '../data/northwind';
 import { roles, education, RESUME } from '../data/experience';
 import { examples as evalExamples } from '../data/evaluations';
@@ -55,7 +55,7 @@ const EMAIL = 'kolawoleodewusi@gmail.com';
     <div class="cards">
       {projects.map((p, i) => <ProjectCard project={p} image={images[p.slug as keyof typeof images]} feature={i === 0} />)}
     </div>
-    <p class="more"><a href="https://github.com/WoleTheAnalyst">More projects on GitHub →</a></p>
+    <p class="more">Also on GitHub: {repoProjects.map((r, i) => <>{i > 0 && ', '}<a href={r.repo}>{r.title}</a> <span class="mono small muted">({r.tools.slice(0, 2).join(' · ')})</span></>)} · <a href="https://github.com/WoleTheAnalyst">all repositories →</a></p>
   </section>
 
   <section class="section wrap" id="method" aria-labelledby="method-h">
