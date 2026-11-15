@@ -1,0 +1,101 @@
+---
+import { SEVERITY, type Example } from '../data/evaluations';
+
+interface Props { example: Example; index: number }
+const { example: ex, index } = Astro.props;
+const notesId = `${ex.id}-notes`;
+---
+<article class="example" id={ex.id} data-notes="on" aria-labelledby={`${ex.id}-h`}>
+  <header class="ex-head">
+    <p class="eyebrow">Example {index} · {ex.skill}</p>
+    <h3 id={`${ex.id}-h`}>{ex.title}</h3>
+    <p class="small muted">Illustrative, written for this portfolio. Checked against the <a href={ex.source.href}>{ex.source.label}</a>.</p>
+  </header>
+
+  <div class="io">
+    <div class="block">
+      <p class="label mono">Prompt</p>
+      <p class="prompt">{ex.prompt}</p>
+    </div>
+    <div class="block">
+      <div class="label-row">
+        <p class="label mono">Model response</p>
+        <button class="toggle" type="button" data-notes-toggle aria-expanded="true" aria-controls={notesId} hidden>Hide evaluator notes</button>
+      </div>
+      <p class="response">
+        {ex.response.map((s) => s.flag
+          ? <mark class="flag"><span>{s.text}</span><sup class="mono" aria-label={`note ${s.flag}`}>{s.flag}</sup></mark>
+          : s.text)}
+      </p>
+    </div>
+  </div>
+
+  <ol class="notes" id={notesId} aria-label="Evaluator notes">
+    {ex.notes.map((n) => (
+      <li>
+        <span class="n mono" aria-hidden="true">{n.n}</span>
+        <div>
+          <p class="note-head"><span class:list={['sev', n.severity]}><span aria-hidden="true">{SEVERITY[n.severity].glyph}</span> {SEVERITY[n.severity].text}</span> <span class="type">{n.type}</span></p>
+          <p class="note-body">{n.note}</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+
+  <div class="table-scroll" tabindex="0" role="region" aria-label={`Rubric for example ${index}`}>
+    <table class="rubric">
+      <thead><tr><th scope="col">Criterion</th><th scope="col">Result</th><th scope="col">Why</th></tr></thead>
+      <tbody>
+        {ex.rubric.map((r) => (
+          <tr>
+            <th scope="row">{r.criterion}</th>
+            <td><span class:list={['sev', r.result]}><span aria-hidden="true">{SEVERITY[r.result].glyph}</span> {SEVERITY[r.result].text}</span></td>
+            <td>{r.comment}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <p class="verdict"><strong>Verdict.</strong> {ex.verdict}</p>
+  <div class="block corrected">
+    <p class="label mono">What a correct answer looks like</p>
+    <p>{ex.corrected}</p>
+  </div>
+</article>
+
+<style>
+  .example { border-top: 2px solid var(--ink); padding-top: var(--s-5); margin-top: var(--s-8); }
+  .example:first-of-type { margin-top: var(--s-6); }
+  .ex-head h3 { font-family: var(--font-display); font-weight: 500; font-size: var(--step-2); margin: 0 0 var(--s-2); }
+  .io { display: grid; gap: var(--s-4); margin: var(--s-5) 0; }
+  .block { border: 1px solid var(--rule); border-radius: var(--radius); padding: var(--s-4); background: var(--paper); }
+  .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); margin: 0 0 var(--s-2); }
+  .label-row { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
+  .prompt { margin: 0; font-weight: 500; }
+  .response { margin: 0; font-family: var(--font-display); font-size: var(--step-1); line-height: 1.55; max-width: none; }
+  .flag { background: var(--cobalt-tint); color: inherit; border-bottom: 2px solid var(--cobalt-mark); padding: 0 2px; border-radius: 2px; }
+  .flag sup { font-size: 0.62em; color: var(--cobalt); margin-left: 2px; font-weight: 500; }
+  .toggle { min-height: 36px; padding: 0 var(--s-3); background: none; border: 1px solid var(--rule-strong); border-radius: var(--radius); color: var(--ink); font: 500 0.78rem var(--font-sans); cursor: pointer; }
+  .toggle:hover { border-color: var(--ink); }
+  [data-notes='off'] .flag { background: none; border-bottom-color: transparent; padding: 0; }
+  [data-notes='off'] .flag sup, [data-notes='off'] .notes { display: none; }
+
+  .notes { list-style: none; padding: 0; margin: 0 0 var(--s-5); max-width: none; display: grid; gap: var(--s-3); }
+  .notes li { display: grid; grid-template-columns: 1.8rem 1fr; gap: var(--s-3); margin: 0; }
+  .n { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--cobalt-mark); color: #fff; font-size: 0.78rem; }
+  .note-head { margin: 0 0 2px; font-size: var(--step--1); }
+  .type { font-weight: 600; }
+  .note-body { margin: 0; font-size: var(--step--1); color: var(--ink-2); }
+  .sev { font: 500 0.72rem/1.4 var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; margin-right: var(--s-2); white-space: nowrap; }
+  .sev.major { color: var(--ink); }
+  .sev.minor { color: var(--ink-2); }
+  .sev.pass { color: var(--cobalt); }
+  .rubric th[scope='row'] { font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .rubric td { color: var(--ink-2); }
+  .verdict { margin: var(--s-5) 0 var(--s-3); }
+  .corrected { border-left: 3px solid var(--cobalt-mark); }
+  .corrected p:last-child { margin: 0; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .n { color: #0b0d12; } }
+  :global(:root[data-theme='dark']) .n { color: #0b0d12; }
+</style>

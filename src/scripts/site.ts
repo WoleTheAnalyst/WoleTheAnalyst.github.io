@@ -126,3 +126,16 @@ document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
     }
   });
 });
+
+// Evaluator-notes toggle on AI evaluation examples: read the response clean, then with annotations.
+document.querySelectorAll<HTMLButtonElement>('[data-notes-toggle]').forEach((btn) => {
+  const example = btn.closest<HTMLElement>('[data-notes]');
+  if (!example) return;
+  btn.hidden = false;
+  btn.addEventListener('click', () => {
+    const on = example.dataset.notes !== 'on';
+    example.dataset.notes = on ? 'on' : 'off';
+    btn.setAttribute('aria-expanded', String(on));
+    btn.textContent = on ? 'Hide evaluator notes' : 'Show evaluator notes';
+  });
+});
