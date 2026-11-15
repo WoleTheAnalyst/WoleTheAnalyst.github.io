@@ -26,6 +26,19 @@ export const STATUS_LABEL: Record<Status, { glyph: string; text: string }> = {
 
 export const projects: Project[] = [
   {
+    slug: 'palladium-bank-data-warehouse',
+    title: 'Palladium Bank Data Warehouse & Transaction Analytics',
+    summary:
+      'A MySQL star-schema data warehouse for a fictional retail bank: each design decision traced to a reporting need, with ETL, data-quality checks and a monthly reporting table.',
+    question: 'How should 18 months of flat-file transactions be modelled so reports are fast and consistent?',
+    disciplines: ['Business Analysis', 'Data & BI'],
+    status: 'verified',
+    context: 'HNG Internship · Data Analytics Stage 3B task',
+    tools: ['MySQL', 'dbdiagram.io'],
+    period: 'Apr 2026',
+    repo: 'https://github.com/WoleTheAnalyst/Palladium-Bank-Data-Warehouse-Transaction-Analytics',
+  },
+  {
     slug: 'northwind-traders-bi-report',
     title: 'Northwind Traders Business Intelligence Report',
     summary:
