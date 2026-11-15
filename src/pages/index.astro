@@ -6,6 +6,7 @@ import ProjectCard from '../components/ProjectCard.astro';
 import { projects } from '../data/projects';
 import { quarters } from '../data/northwind';
 import { roles, education, RESUME } from '../data/experience';
+import { examples as evalExamples } from '../data/evaluations';
 import nwShot from '../assets/northwind/page-1-sales-revenue.png';
 import ibmShot from '../assets/ibm/attrition-by-job-role.png';
 import pbErd from '../assets/palladium/schema-diagram.png';
@@ -84,6 +85,22 @@ const EMAIL = 'kolawoleodewusi@gmail.com';
         <p>Each Northwind recommendation is marked as supported, partly supported, a hypothesis or not shown. <a href="/work/northwind-traders-bi-report/#recommendations">See the table</a></p>
       </li>
     </ol>
+  </section>
+
+  <section class="section wrap" id="ai-evaluation" aria-labelledby="ai-h">
+    <div class="ai-grid">
+      <div class="sec-head">
+        <p class="eyebrow">AI evaluation</p>
+        <h2 id="ai-h">How I evaluate AI output</h2>
+        <p class="muted">A five-step method, six error types and three worked examples. Each is illustrative and written for this portfolio, checked against the public datasets in my case studies so every judgement can be verified.</p>
+        <p><a class="btn" href="/ai-evaluation/">See the method and examples</a></p>
+      </div>
+      <ol class="ai-list">
+        {evalExamples.map((ex, i) => (
+          <li><a href={`/ai-evaluation/#${ex.id}`}><span class="mono">Example {i + 1} · {ex.skill}</span><strong>{ex.title}</strong></a></li>
+        ))}
+      </ol>
+    </div>
   </section>
 
   <section class="section wrap" id="capabilities" aria-labelledby="cap-h">
@@ -196,6 +213,15 @@ const EMAIL = 'kolawoleodewusi@gmail.com';
   .ev:hover { border-color: var(--cobalt); }
 
 
+  .ai-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-7); align-items: start; }
+  .ai-grid .sec-head { margin-bottom: 0; }
+  .ai-list { list-style: none; padding: 0; margin: 0; max-width: none; border-top: 1px solid var(--ink); }
+  .ai-list li { margin: 0; border-bottom: 1px solid var(--rule); }
+  .ai-list a { display: grid; gap: 2px; padding: var(--s-4) 0; text-decoration: none; color: var(--ink); }
+  .ai-list a:hover strong { color: var(--cobalt); }
+  .ai-list .mono { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); }
+  .ai-list strong { font-family: var(--font-display); font-weight: 500; font-size: var(--step-1); }
+  @media (max-width: 860px) { .ai-grid { grid-template-columns: 1fr; gap: var(--s-5); } }
   .timeline { list-style: none; padding: 0; margin: 0; max-width: none; border-top: 1px solid var(--ink); }
   .timeline li { display: grid; grid-template-columns: 11rem minmax(0, 1fr) 13rem; gap: var(--s-5); align-items: baseline; padding: var(--s-4) 0; border-bottom: 1px solid var(--rule); margin: 0; }
   .t-when { font-size: var(--step--1); color: var(--ink-2); white-space: nowrap; }

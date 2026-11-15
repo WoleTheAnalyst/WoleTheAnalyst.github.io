@@ -2,12 +2,12 @@
 const path = Astro.url.pathname;
 const links = [
   { href: '/work/', label: 'Work' },
-  { href: '/#method', label: 'Method' },
+  { href: '/ai-evaluation/', label: 'AI Evaluation' },
   { href: '/#capabilities', label: 'Capabilities' },
   { href: '/#experience', label: 'Experience' },
   { href: '/#contact', label: 'Contact' },
 ];
-const isCurrent = (href: string) => href === '/work/' && path.startsWith('/work/');
+const isCurrent = (href: string) => !href.includes('#') && path.startsWith(href);
 ---
 <header class="site-header" data-header>
   <div class="wrap bar">
