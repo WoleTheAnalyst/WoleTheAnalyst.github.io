@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import StatusBadge from '../../components/StatusBadge.astro';
-import { projects } from '../../data/projects';
+import { projects, repoProjects } from '../../data/projects';
 ---
 <Base title="Work" description="Case studies by Kolawole Odewusi in business intelligence and business analysis, each with its context, data source and verification notes.">
   <section class="wrap head">
@@ -27,6 +27,18 @@ import { projects } from '../../data/projects';
         </li>
       ))}
     </ol>
+    <section class="repos" aria-labelledby="repos-h">
+      <h2 id="repos-h" class="eyebrow">Also on GitHub</h2>
+      <ul>
+        {repoProjects.map((r) => (
+          <li>
+            <h3><a href={r.repo}>{r.title} <span aria-hidden="true">↗</span></a></h3>
+            <p class="muted">{r.summary}</p>
+            <p class="mono small tools">{r.tools.join(' · ')} · Repository, not a full case study</p>
+          </li>
+        ))}
+      </ul>
+    </section>
     <p class="more"><a href="https://github.com/WoleTheAnalyst">More projects on GitHub →</a></p>
   </section>
 </Base>
@@ -47,5 +59,14 @@ import { projects } from '../../data/projects';
   .side dt { font: 500 0.72rem/1.6 var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); }
   .side dd { margin: 0; }
   .more { margin-block: var(--s-6) var(--s-9); }
+  .repos { margin-top: var(--s-8); }
+  .repos h2 { font: 500 var(--step--1)/1.4 var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 var(--s-3); }
+  .repos ul { list-style: none; padding: 0; margin: 0; max-width: none; border-top: 1px solid var(--rule); }
+  .repos li { padding: var(--s-5) 0; border-bottom: 1px solid var(--rule); margin: 0; }
+  .repos h3 { font-family: var(--font-display); font-weight: 500; font-size: var(--step-1); margin: 0 0 var(--s-2); }
+  .repos h3 a { color: var(--ink); text-decoration: none; }
+  .repos h3 a:hover { color: var(--cobalt); }
+  .repos p { margin: 0 0 var(--s-2); }
+  .tools { color: var(--ink-2); }
   @media (max-width: 860px) { .list li { grid-template-columns: 2.5rem minmax(0, 1fr); } .side { grid-column: 2; } }
 </style>
